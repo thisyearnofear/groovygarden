@@ -1,0 +1,82 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+*.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+.ENV/
+.python-version
+uv.lock
+uv-production.lock
+.pyre/
+.pytest_cache/
+.coverage
+htmlcov/
+.cov/
+.mypy_cache/
+
+# Environment
+.env
+.env.local
+.env.production
+.env.test
+.env.development
+
+# Build outputs
+dist/
+build/
+public/dist/
+.DS_Store
+*.log
+logs/
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Vite
+!.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets
+secrets/
+credentials.json
+credentials/
+config.json
+
+# Sensitive files
+config/
+config.*
+!config/default.json
+*.key
+*.pem
+*.crt
+*.cert
