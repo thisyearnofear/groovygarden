@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Fallback from "./Fallback.tsx";
 import SystemErrorBoundary from "./SystemErrorBoundary.tsx";
 import "./index.css";
-import ScreenshotComponent from "./components/ScreenshotComponent.tsx";
+// Screenshot component removed - was for Solar platform integration
 import Router from "./components/Router.tsx";
 import { client } from './lib/sdk/client.gen';
 client.setConfig({ 
@@ -25,10 +25,10 @@ const Root = () => {
     <>
       <AuthProvider
           client={client}
-          clientId={"b2c27abe-a852-442a-bbc9-221739dd3053"}
-          baseInfranodeUrl={"api.solarapp.dev"}
-          loginRedirectUrl={"https://solarapp.dev/external-login"}
-          appName={"App Name"}
+          clientId={"degen-dancing-hackathon"}
+          baseInfranodeUrl={window.location.hostname.replace("5173", "8000")}
+          loginRedirectUrl={window.location.origin + "/auth/login"}
+          appName={"DegenDancing - AI-Powered Dance Chains"}
       >
         <BrowserRouter>
           <Routes>
@@ -42,7 +42,6 @@ const Root = () => {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
-      <ScreenshotComponent />
     </>
   )
 }

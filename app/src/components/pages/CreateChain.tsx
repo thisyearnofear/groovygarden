@@ -1,7 +1,8 @@
-import { Play, Settings, CircleAlert } from "lucide-react";
+import { Play, Settings, CircleAlert, Sparkles } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { chainServiceCreateDanceChain, userServiceGetUserProfile } from '@/lib/sdk';
+import { useAI } from '@/hooks/use-ai';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +16,7 @@ import VideoRecorder from '../video/VideoRecorder';
 
 export default function CreateChain() {
   const navigate = useNavigate();
+  const { generateChallenge, loading: aiLoading, error: aiError, inferenceTimeMs } = useAI();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -27,6 +29,7 @@ export default function CreateChain() {
   const [error, setError] = useState<string | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [step, setStep] = useState(1);
+  const [showAISuccess, setShowAISuccess] = useState(false);
 
   const categories = [
     { value: 'hip-hop', label: 'Hip-Hop' },
@@ -58,6 +61,31 @@ export default function CreateChain() {
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAIGenerate = async () => {
+    if (!formData.category) {
+      setError('Please select a category first');
+      return;
+    }
+
+    try {
+      setError(null);
+      const difficulty = 'medium'; // Default difficulty
+      const challenge = await generateChallenge(formData.category, difficulty);
+      
+      // Fill form with AI-generated content
+      setFormData(prev => ({
+        ...prev,
+        title: challenge.name || prev.title,
+        description: challenge.description || prev.description,
+      }));
+      
+      setShowAISuccess(true);
+      setTimeout(() => setShowAISuccess(false), 3000);
+    } catch (err) {
+      setError(aiError || 'Failed to generate challenge');
+    }
   };
 
   const handleVideoRecorded = (blob: Blob) => {
@@ -152,6 +180,43 @@ export default function CreateChain() {
                   <CircleAlert className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
+              )}
+
+              {showAISuccess && inferenceTimeMs && (
+                <Alert className="bg-purple-50 border-purple-200">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <AlertDescription className="text-purple-900">
+                    AI generated your challenge in {inferenceTimeMs}ms! ⚡
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* AI Generate Button */}
+              {formData.category && (
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 mb-1 flex items-center">
+                        <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                        AI Challenge Generator
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Let AI create a catchy title and description for your {formData.category} challenge
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={handleAIGenerate}
+                        disabled={aiLoading || !formData.category}
+                        variant="outline"
+                        size="sm"
+                        className="border-purple-300 hover:bg-purple-50"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        {aiLoading ? 'Generating...' : 'Generate with AI'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Title */}

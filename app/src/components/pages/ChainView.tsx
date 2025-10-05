@@ -1,7 +1,8 @@
-import { Play, Users, Eye, TrendingUp, Clock, Plus, ThumbsUp, ThumbsDown, Share, Flag, Award, User as UserIcon, Calendar, CirclePlay } from "lucide-react";
+import { Play, Users, Eye, TrendingUp, Clock, Plus, ThumbsUp, ThumbsDown, Share, Flag, Award, User as UserIcon, Calendar, CirclePlay, Sparkles } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/auth/AuthProvider';
+import { useAI } from '@/hooks/use-ai';
 import { 
   chainServiceGetDanceChain,
   chainServiceGetChainMoves,
@@ -24,6 +25,7 @@ export default function ChainView() {
   const { chainId } = useParams<{ chainId: string }>();
   const { userDetails } = useAuthContext();
   const navigate = useNavigate();
+  const { getCoachCommentary, loading: aiLoading, inferenceTimeMs } = useAI();
   
   const [chain, setChain] = useState<DanceChain | null>(null);
   const [moves, setMoves] = useState<ChainMove[]>([]);
@@ -33,6 +35,8 @@ export default function ChainView() {
   const [showAddMoveDialog, setShowAddMoveDialog] = useState(false);
   const [submittingMove, setSubmittingMove] = useState(false);
   const [userVotes, setUserVotes] = useState<Record<string, string>>({});
+  const [aiCommentary, setAiCommentary] = useState<Record<string, string>>({});
+  const [loadingCommentary, setLoadingCommentary] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (chainId) {
@@ -108,6 +112,26 @@ export default function ChainView() {
       loadChainData();
     } catch (error) {
       console.error('Error voting:', error);
+    }
+  };
+
+  const handleGetAIFeedback = async (move: ChainMove) => {
+    if (!move.id) return;
+    
+    setLoadingCommentary(prev => ({ ...prev, [move.id!]: true }));
+    
+    try {
+      const result = await getCoachCommentary(
+        move.verification_score || 0.85,
+        move.duration_seconds,
+        move.move_number
+      );
+      
+      setAiCommentary(prev => ({ ...prev, [move.id!]: result.content }));
+    } catch (error) {
+      console.error('Error getting AI feedback:', error);
+    } finally {
+      setLoadingCommentary(prev => ({ ...prev, [move.id!]: false }));
     }
   };
 
@@ -372,6 +396,49 @@ export default function ChainView() {
                               <Eye className="w-3 h-3" />
                               <span>{move.views || 0}</span>
                             </div>
+                          </div>
+
+                          {/* AI Coach Feedback */}
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            {!aiCommentary[move.id!] ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleGetAIFeedback(move)}
+                                disabled={loadingCommentary[move.id!]}
+                                className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                              >
+                                <Sparkles className="w-3 h-3 mr-2" />
+                                {loadingCommentary[move.id!] ? 'Getting AI feedback...' : 'Get AI Coach Feedback'}
+                              </Button>
+                            ) : (
+                              <div className="bg-purple-50 p-3 rounded-lg">
+                                <div className="flex items-start mb-2">
+                                  <Sparkles className="w-4 h-4 text-purple-600 mr-2 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-purple-900 mb-1">AI Coach:</p>
+                                    <p className="text-sm text-gray-700">{aiCommentary[move.id!]}</p>
+                                    {inferenceTimeMs && (
+                                      <p className="text-xs text-purple-600 mt-2">
+                                        Response time: {inferenceTimeMs}ms ⚡
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setAiCommentary(prev => {
+                                    const newState = { ...prev };
+                                    delete newState[move.id!];
+                                    return newState;
+                                  })}
+                                  className="text-xs text-gray-500 hover:text-gray-700"
+                                >
+                                  Dismiss
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

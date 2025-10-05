@@ -52,6 +52,7 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
 from .models import GetUserProfileOutputSchema, CreateUserProfileOutputSchema, UpdateUserProfileOutputSchema, BodyUserServiceGetPublicUserProfile, GetPublicUserProfileOutputSchema, BodyUserServiceGetUserChains, GetUserChainsOutputSchema, BodyUserServiceGetUserMoves, GetUserMovesOutputSchema, CreateDanceChainOutputSchema, BodyChainServiceGetDanceChains, GetDanceChainsOutputSchema, BodyChainServiceGetDanceChain, GetDanceChainOutputSchema, BodyChainServiceGetChainMoves, GetChainMovesOutputSchema, AddMoveToChainOutputSchema, BodyChainServiceSearchChains, SearchChainsOutputSchema, BodyVotingServiceVoteOnMove, VoteOnMoveOutputSchema, BodyVotingServiceRemoveVote, RemoveVoteOutputSchema, BodyVotingServiceGetUserVoteOnMove, GetUserVoteOnMoveOutputSchema, BodyVotingServiceGetTopMoves, GetTopMovesOutputSchema, BodyVotingServiceGetMoveLeaderboardForChain, GetMoveLeaderboardForChainOutputSchema
 from core import user_service, chain_service, voting_service
+from core.ai_service import ai_service
 
 
 ###############################################################################
@@ -728,6 +729,109 @@ async def voting_service_get_move_leaderboard_for_chain(body: BodyVotingServiceG
     """
     response = await run_sync_in_thread(voting_service.get_move_leaderboard_for_chain, chain_id=body.chain_id)
     return response
-    
-    
 
+
+##############################################################################
+# AI-Powered Features (Cerebras + Llama)
+##############################################################################
+
+@app.post('/api/ai/generate_challenge', operation_id='ai_generate_challenge')
+async def ai_generate_challenge(
+    theme: str = Form(..., description="Theme for the challenge (e.g., 'hip-hop', 'freestyle', 'latin')"),
+    difficulty: str = Form(..., description="Difficulty level: 'easy', 'medium', or 'hard'")
+) -> Dict:
+    """
+    Generate a complete dance challenge using AI.
+    Uses Cerebras-powered Llama for ultra-fast generation.
+    Returns structured challenge with performance metrics.
+    """
+    try:
+        result = await run_sync_in_thread(
+            ai_service.generate_challenge,
+            theme=theme,
+            difficulty=difficulty
+        )
+        return result
+    except Exception as e:
+        logger.exception("AI challenge generation failed")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+
+@app.post('/api/ai/coach_commentary', operation_id='ai_coach_commentary')
+async def ai_coach_commentary(
+    verification_score: float = Form(..., description="Move verification score (0-1)"),
+    duration: float = Form(..., description="Move duration in seconds"),
+    move_number: int = Form(..., description="Move number in chain")
+) -> Dict:
+    """
+    Get AI coach commentary on a dance move performance.
+    Uses Cerebras for real-time (<300ms) feedback.
+    """
+    try:
+        result = await run_sync_in_thread(
+            ai_service.generate_coach_commentary,
+            verification_score=verification_score,
+            duration=duration,
+            move_number=move_number
+        )
+        return result
+    except Exception as e:
+        logger.exception("AI coach commentary failed")
+        raise HTTPException(status_code=500, detail=f"AI commentary failed: {str(e)}")
+
+
+@app.post('/api/ai/describe_move', operation_id='ai_describe_move')
+async def ai_describe_move(
+    body: Dict = Body(..., description="Pose analysis data with position, arms, legs, energy")
+) -> Dict:
+    """
+    Generate natural language description of a dance move.
+    Lightning-fast using Cerebras + Llama-8B.
+    """
+    try:
+        result = await run_sync_in_thread(
+            ai_service.describe_move,
+            pose_analysis=body
+        )
+        return result
+    except Exception as e:
+        logger.exception("AI move description failed")
+        raise HTTPException(status_code=500, detail=f"AI description failed: {str(e)}")
+
+
+@app.post('/api/ai/viral_caption', operation_id='ai_viral_caption')
+async def ai_viral_caption(
+    chain_title: str = Form(..., description="Dance chain title"),
+    category: str = Form(..., description="Dance category"),
+    participant_count: int = Form(..., description="Number of participants")
+) -> Dict:
+    """
+    Generate viral-worthy social media caption for a dance challenge.
+    Optimized for Farcaster and social sharing.
+    """
+    try:
+        result = await run_sync_in_thread(
+            ai_service.generate_viral_caption,
+            chain_title=chain_title,
+            category=category,
+            participant_count=participant_count
+        )
+        return result
+    except Exception as e:
+        logger.exception("AI caption generation failed")
+        raise HTTPException(status_code=500, detail=f"AI caption failed: {str(e)}")
+
+
+@app.get('/api/ai/performance_metrics', operation_id='ai_performance_metrics')
+async def ai_performance_metrics() -> Dict:
+    """
+    Get AI service performance metrics.
+    Shows Cerebras speed advantage and usage statistics.
+    Perfect for demo purposes - displays 8x speedup vs typical cloud.
+    """
+    try:
+        metrics = ai_service.get_performance_metrics()
+        return metrics
+    except Exception as e:
+        logger.exception("Failed to get AI metrics")
+        raise HTTPException(status_code=500, detail=f"Metrics retrieval failed: {str(e)}")
