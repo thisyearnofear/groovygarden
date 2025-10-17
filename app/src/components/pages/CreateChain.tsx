@@ -135,17 +135,54 @@ export default function CreateChain() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create a New Dance Chain
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+  <Navbar />
+
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div className="text-center mb-12 animate-fade-in-up">
+  <div className="inline-flex items-center space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-sm border border-purple-100">
+  <Sparkles className="w-4 h-4 text-purple-600" />
+    <span className="text-sm font-medium text-purple-700">AI-Assisted Creation</span>
+  </div>
+
+  <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-4">
+      Create a New Dance Chain
           </h1>
-          <p className="text-gray-600">
-            Start a collaborative dance sequence that others can build upon
+
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Start a collaborative dance sequence that others can build upon.
+            Our AI will help you craft the perfect challenge!
           </p>
+
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center space-x-4 mt-8">
+            <div className={`flex items-center space-x-2 ${step >= 1 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step >= 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                1
+              </div>
+              <span className="text-sm font-medium">Details</span>
+            </div>
+            <div className={`w-12 h-0.5 ${step >= 2 ? 'bg-purple-600' : 'bg-gray-200'}`} />
+            <div className={`flex items-center space-x-2 ${step >= 2 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step >= 2 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                2
+              </div>
+              <span className="text-sm font-medium">AI Generate</span>
+            </div>
+            <div className={`w-12 h-0.5 ${step >= 3 ? 'bg-purple-600' : 'bg-gray-200'}`} />
+            <div className={`flex items-center space-x-2 ${step >= 3 ? 'text-purple-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step >= 3 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                3
+              </div>
+              <span className="text-sm font-medium">Record</span>
+            </div>
+          </div>
         </div>
 
         {/* Progress Indicator */}
@@ -204,12 +241,13 @@ export default function CreateChain() {
                         Let AI create a catchy title and description for your {formData.category} challenge
                       </p>
                       <Button
-                        type="button"
-                        onClick={handleAIGenerate}
-                        disabled={aiLoading || !formData.category}
-                        variant="outline"
-                        size="sm"
-                        className="border-purple-300 hover:bg-purple-50"
+                      type="button"
+                      onClick={handleAIGenerate}
+                      disabled={aiLoading || !formData.category}
+                      variant="outline"
+                      size="sm"
+                      className="border-purple-300 hover:bg-purple-50 focus-enhanced"
+                        data-tour="ai-challenge"
                       >
                         <Sparkles className="w-4 h-4 mr-2" />
                         {aiLoading ? 'Generating...' : 'Generate with AI'}
@@ -310,11 +348,13 @@ export default function CreateChain() {
               </CardHeader>
             </Card>
             
-            <VideoRecorder 
+            <div data-tour="video-recorder">
+            <VideoRecorder
               onVideoRecorded={handleVideoRecorded}
               maxDurationSeconds={10}
-              minDurationSeconds={5}
-            />
+                minDurationSeconds={5}
+              />
+            </div>
             
             <div className="text-center mt-6">
               <Button 

@@ -2,6 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations for delightful UX */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(168, 85, 247, 0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s ease-out forwards;
+}
+
+/* Enhanced button interactions */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-enhanced:focus {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

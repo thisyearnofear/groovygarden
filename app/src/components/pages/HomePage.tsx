@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '../layout/Navbar';
-import { Play, Users, Eye, TrendingUp, Clock, Plus } from 'lucide-react';
+import { Play, Users, Eye, TrendingUp, Clock, Plus, Zap } from 'lucide-react';
 
 export default function HomePage() {
   const [chains, setChains] = useState<DanceChain[]>([]);
@@ -65,26 +65,62 @@ export default function HomePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Discover Amazing Dance Chains
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Join collaborative dance sequences or start your own viral chain
-          </p>
-          <Button 
-            onClick={() => navigate('/create-chain')}
-            size="lg"
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create New Chain
-          </Button>
+        <div className="text-center mb-16 animate-fade-in-up">
+        <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full px-4 py-2 mb-6">
+        <Zap className="w-4 h-4 text-purple-600" />
+          <span className="text-sm font-medium text-purple-700">AI-Powered Dance Platform</span>
+        </div>
+
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
+          Discover Amazing<br />Dance Chains
+        </h1>
+
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          Join collaborative dance sequences powered by AI. Start chains, add moves, and watch your creations go viral with real-time verification.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <Button
+              onClick={() => navigate('/create-chain')}
+              size="lg"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 btn-primary focus-enhanced px-8 py-3 text-lg"
+              data-tour="create-chain"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create New Chain
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => document.querySelector('[data-tour="categories"]')?.scrollIntoView({ behavior: 'smooth' })}
+              className="focus-enhanced px-8 py-3 text-lg"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Explore Chains
+            </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+            <div className="text-center animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+              <div className="text-3xl font-bold text-purple-600 mb-1">∞</div>
+              <div className="text-sm text-gray-600">Dance Chains Created</div>
+            </div>
+            <div className="text-center animate-slide-in-right" style={{ animationDelay: '0.4s' }}>
+              <div className="text-3xl font-bold text-pink-600 mb-1">AI</div>
+              <div className="text-sm text-gray-600">Smart Verification</div>
+            </div>
+            <div className="text-center animate-slide-in-right" style={{ animationDelay: '0.6s' }}>
+              <div className="text-3xl font-bold text-purple-600 mb-1">⚡</div>
+              <div className="text-sm text-gray-600">Real-time Feedback</div>
+            </div>
+          </div>
         </div>
 
         {/* Category Tabs */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-          <TabsList className="grid w-full grid-cols-7">
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8" data-tour="categories">
+        <TabsList className="grid w-full grid-cols-7">
             {categories.map((category) => (
               <TabsTrigger key={category.value} value={category.value}>
                 {category.label}
@@ -95,7 +131,7 @@ export default function HomePage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader>
@@ -116,12 +152,14 @@ export default function HomePage() {
 
         {/* Chains Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {chains.map((chain) => (
-              <Card 
-                key={chain.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer group"
-                onClick={() => navigate(`/chain/${chain.id}`)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {chains.map((chain, index) => (
+        <Card
+        key={chain.id}
+        className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up"
+        style={{ animationDelay: `${index * 100}ms` }}
+          onClick={() => navigate(`/chain/${chain.id}`)}
+                data-tour="chain-card"
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">

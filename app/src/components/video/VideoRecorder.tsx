@@ -216,47 +216,49 @@ export default function VideoRecorder({
           </div>
 
           {/* Controls */}
-          <div className="flex justify-center space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 sm:space-x-4">
             {!isRecording && !isPreviewing && (
-              <Button
-                onClick={startRecording}
-                size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Start Recording
-              </Button>
+            <Button
+            onClick={startRecording}
+            size="lg"
+            className="bg-red-600 hover:bg-red-700 text-white min-h-[48px] px-6 text-base"
+            >
+            <Play className="w-5 h-5 mr-2" />
+            Start Recording
+            </Button>
             )}
 
             {isRecording && (
-              <Button
-                onClick={stopRecording}
-                size="lg"
-                variant="destructive"
-              >
-                <Square className="w-5 h-5 mr-2" />
-                Stop Recording
+            <Button
+            onClick={stopRecording}
+            size="lg"
+            variant="destructive"
+              className="min-h-[48px] px-6 text-base"
+            >
+            <Square className="w-5 h-5 mr-2" />
+              Stop Recording
               </Button>
             )}
 
             {isPreviewing && (
               <>
                 <Button
-                  onClick={discardRecording}
-                  variant="outline"
-                  size="lg"
+                onClick={discardRecording}
+                variant="outline"
+                size="lg"
+                  className="min-h-[48px] px-6 text-base"
                 >
-                  <RotateCcw className="w-5 h-5 mr-2" />
+                <RotateCcw className="w-5 h-5 mr-2" />
                   Retake
                 </Button>
                 <Button
-                  onClick={confirmRecording}
-                  size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={confirmRecording}
+                size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white min-h-[48px] px-6 text-base"
                 >
-                  <Check className="w-5 h-5 mr-2" />
+                <Check className="w-5 h-5 mr-2" />
                   Use This Recording
-                </Button>
+                 </Button>
               </>
             )}
           </div>

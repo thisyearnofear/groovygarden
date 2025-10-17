@@ -1,4 +1,4 @@
-import { Play, Users, Eye, TrendingUp, Clock, Plus, ThumbsUp, ThumbsDown, Share, Flag, Award, User as UserIcon, Calendar, CirclePlay, Sparkles } from "lucide-react";
+import { Play, Users, Eye, TrendingUp, Clock, Plus, ThumbsUp, ThumbsDown, Share, Flag, Award, User as UserIcon, Calendar, CirclePlay, Sparkles, AlertCircle, CheckCircle } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/auth/AuthProvider';
@@ -37,6 +37,9 @@ export default function ChainView() {
   const [userVotes, setUserVotes] = useState<Record<string, string>>({});
   const [aiCommentary, setAiCommentary] = useState<Record<string, string>>({});
   const [loadingCommentary, setLoadingCommentary] = useState<Record<string, boolean>>({});
+  const [isPlayingSequence, setIsPlayingSequence] = useState(false);
+  const [sequencePlaybackIndex, setSequencePlaybackIndex] = useState(0);
+  const [notifications, setNotifications] = useState<Array<{id: string, type: 'success' | 'error', message: string}>>([]);
 
   useEffect(() => {
     if (chainId) {
@@ -107,11 +110,15 @@ export default function ChainView() {
       
       // Update local state
       setUserVotes(prev => ({ ...prev, [moveId]: voteType }));
-      
+
+      // Show success notification
+      showNotification('success', `Vote ${voteType === 'up' ? 'up' : 'down'} recorded!`);
+
       // Refresh moves to get updated vote counts
       loadChainData();
     } catch (error) {
       console.error('Error voting:', error);
+      showNotification('error', 'Failed to vote. Please try again.');
     }
   };
 
@@ -149,19 +156,54 @@ export default function ChainView() {
       
       if (response.data) {
         setShowAddMoveDialog(false);
+        showNotification('success', 'Your move has been added to the chain!');
         loadChainData(); // Refresh to show new move
       }
     } catch (error: any) {
       console.error('Error adding move:', error);
-      setError(error.response?.data?.detail || 'Failed to add move. Please try again.');
+      const errorMessage = error.response?.data?.detail || 'Failed to add move. Please try again.';
+      showNotification('error', errorMessage);
     } finally {
       setSubmittingMove(false);
     }
   };
 
   const playAllMoves = () => {
+    if (!moves.length) return;
+
+    setIsPlayingSequence(true);
+    setSequencePlaybackIndex(0);
     setCurrentVideoIndex(0);
-    // This would trigger sequential video playback
+  };
+
+  const stopSequencePlayback = () => {
+    setIsPlayingSequence(false);
+    setSequencePlaybackIndex(0);
+  };
+
+  const nextInSequence = () => {
+    if (!isPlayingSequence || sequencePlaybackIndex >= moves.length - 1) {
+      stopSequencePlayback();
+      return;
+    }
+
+    setSequencePlaybackIndex(prev => prev + 1);
+    setCurrentVideoIndex(sequencePlaybackIndex + 1);
+  };
+
+  const previousInSequence = () => {
+    if (sequencePlaybackIndex > 0) {
+      setSequencePlaybackIndex(prev => prev - 1);
+      setCurrentVideoIndex(sequencePlaybackIndex - 1);
+    }
+  };
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
   };
 
   const formatDate = (dateString: string) => {
@@ -173,11 +215,64 @@ export default function ChainView() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+  return (
+  <div className="min-h-screen bg-gray-50">
+  <Navbar />
+
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {/* Chain Header Skeleton */}
+      <div className="animate-pulse mb-8">
+          <div className="bg-white rounded-lg p-6 shadow">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                </div>
+                <div className="h-6 bg-gray-200 rounded w-16"></div>
+              </div>
+              <div className="h-3 bg-gray-200 rounded w-full mb-4"></div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Moves Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg p-6 shadow mb-6">
+                <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gray-200 rounded-lg aspect-video mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                      <div className="flex space-x-2">
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="animate-pulse bg-white rounded-lg p-6 shadow">
+                  <div className="h-6 bg-gray-200 rounded w-24 mb-4"></div>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -211,9 +306,32 @@ export default function ChainView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
+  <div className="min-h-screen bg-gray-50">
+  <Navbar />
+
+  {/* Notifications */}
+      {notifications.length > 0 && (
+        <div className="fixed top-20 right-4 z-50 space-y-2">
+          {notifications.map(notification => (
+            <div
+              key={notification.id}
+              className={`flex items-center p-4 rounded-lg shadow-lg max-w-sm ${
+                notification.type === 'success'
+                  ? 'bg-green-50 border border-green-200 text-green-800'
+                  : 'bg-red-50 border border-red-200 text-red-800'
+              }`}
+            >
+              {notification.type === 'success' ? (
+                <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              )}
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Chain Header */}
         <Card className="mb-8">
@@ -289,14 +407,50 @@ export default function ChainView() {
                 <CardTitle className="flex items-center justify-between">
                   <span>Dance Moves</span>
                   <div className="flex space-x-2">
-                    <Button 
-                      onClick={playAllMoves}
+                  {!isPlayingSequence ? (
+                  <Button
+                    onClick={playAllMoves}
+                    variant="outline"
+                      size="sm"
+                  >
+                    <CirclePlay className="w-4 h-4 mr-1" />
+                      Play Sequence
+                      </Button>
+                    ) : (
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-2">
+                    <div className="flex items-center space-x-2">
+                    <Button
+                      onClick={previousInSequence}
                       variant="outline"
                       size="sm"
-                    >
-                      <CirclePlay className="w-4 h-4 mr-1" />
-                      Play All
+                        disabled={sequencePlaybackIndex === 0}
+                      className="min-w-[80px]"
+                      >
+                        Previous
                     </Button>
+                      <Badge variant="secondary" className="px-3 py-1 min-w-[60px] text-center">
+                        {sequencePlaybackIndex + 1} / {moves.length}
+                    </Badge>
+                    <Button
+                      onClick={nextInSequence}
+                      variant="outline"
+                        size="sm"
+                      disabled={sequencePlaybackIndex >= moves.length - 1}
+                        className="min-w-[60px]"
+                      >
+                      Next
+                    </Button>
+                    </div>
+                    <Button
+                    onClick={stopSequencePlayback}
+                      variant="outline"
+                        size="sm"
+                          className="min-w-[60px]"
+                        >
+                          Stop
+                        </Button>
+                      </div>
+                    )}
                     {chain.status === 'active' && chain.current_move_count < chain.max_moves && (
                       <Dialog open={showAddMoveDialog} onOpenChange={setShowAddMoveDialog}>
                         <DialogTrigger asChild>
@@ -337,9 +491,16 @@ export default function ChainView() {
                     <p>No moves yet in this chain.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {moves.map((move, index) => (
-                      <Card key={move.id} className="hover:shadow-md transition-shadow">
+                    <Card
+                    key={move.id}
+                        className={`hover:shadow-md transition-all ${
+                          isPlayingSequence && index === sequencePlaybackIndex
+                            ? 'ring-2 ring-purple-500 shadow-lg'
+                            : ''
+                        }`}
+                      >
                         <CardContent className="p-4">
                           {/* Video */}
                           <div className="bg-black rounded-lg mb-4 aspect-video overflow-hidden">
