@@ -1,406 +1,350 @@
-# DegenDancing Roadmap to User Testing
+# DegenDancing → Native-Aligned Roadmap
 
-## 🎯 **Mission**
-Transform DegenDancing from a functional prototype into a polished, production-ready dance chain platform ready for user testing, while maintaining high-quality UI/UX, sound product design, and scalable systems architecture.
+## Vision Alignment Strategy
 
-## 🏗️ **Core Principles**
-- **ENHANCEMENT FIRST**: Always prioritize enhancing existing components over creating new ones
-- **AGGRESSIVE CONSOLIDATION**: Delete unnecessary code rather than deprecating
-- **PREVENT BLOAT**: Systematically audit and consolidate before adding new features
-- **DRY**: Single source of truth for all shared logic
-- **CLEAN**: Clear separation of concerns with explicit dependencies
-- **MODULAR**: Composable, testable, independent modules
-- **PERFORMANT**: Adaptive loading, caching, and resource optimization
-- **ORGANIZED**: Predictable file structure with domain-driven design
+This roadmap outlines how DegenDancing can evolve to align with the Native vision of creating a digital city where humans and AI agents coexist in a tokenized economic simulation.
+
+**Current State**: Social video platform for viral dance chains with AI-powered move verification
+
+**Target State**: Tokenized dance economy where AI agents and humans create, trade, and celebrate dance through an onchain economic simulation
+
+**Alignment Score**: 7/10 - High potential for transformation
 
 ---
 
-## 📋 **Current State Assessment**
+## Phase 1: Foundation Layer (Easiest Wins)
+**Timeline**: Q1 2025  
+**Goal**: Establish blockchain infrastructure and social integration
 
-### ✅ **Strengths**
-- Complete React frontend with modern UI/UX
-- FastAPI backend with all API endpoints defined
-- Comprehensive database models and relationships
-- AI service architecture with Cerebras integration
-- Video recording and upload components
-- Authentication and user management system
-- Responsive design with Tailwind CSS
+### 1.1 Blockchain Integration
+- [ ] Add wallet connectivity (Privy/Coinbase Wallet integration)
+- [ ] Deploy smart contracts to Base blockchain
+- [ ] Implement wallet-based authentication alongside existing auth
+- [ ] Create IPFS integration for video storage
 
-### 🚨 **Critical Gaps**
-- Mock move verification logic (core functionality broken)
-- Missing database setup and migrations
-- AI features use mock responses
-- No testing infrastructure
-- Incomplete video playback interactions
-- Missing environment configuration
+### 1.2 Parent Token Launch
+- [ ] Create $DANCE parent token (equivalent to $NATIVE)
+- [ ] Fair launch via Clanker or custom contract
+- [ ] Set up liquidity pools on Base DEXs
+- [ ] Implement token gating for platform features
 
----
+### 1.3 Farcaster Social Layer
+- [ ] Integrate Farcaster sharing for dance chains
+- [ ] In-feed video playback on Farcaster frames
+- [ ] Tag system for viral challenges (@moonwalkchallenge)
+- [ ] Cross-post moves to Farcaster timeline
+- [ ] Engagement tracking from Farcaster interactions
 
-## 🗺️ **Phase 1: Critical Infrastructure** (Week 1)
-*Priority: High | Focus: Make the app runnable*
+### 1.4 Basic Tokenization
+- [ ] Convert dance chains into tradeable tokens
+- [ ] Each chain gets a unique token symbol
+- [ ] Simple buy/sell mechanics through platform
+- [ ] Track token holders and volumes
 
-### 🎯 **Objectives**
-- Establish working development environment
-- Enable core functionality (database, AI, media)
-- Achieve basic end-to-end flow
-
-### 📦 **Deliverables**
-
-#### 1.1 Database Setup & Migrations
-- **Create database initialization scripts**
-- **Implement proper schema migrations**
-- **Add seed data for testing**
-- **Configure connection pooling**
-
-#### 1.2 Environment Configuration
-- **Document all required environment variables**
-- **Create `.env.example` with defaults**
-- **Add environment validation on startup**
-- **Configure production vs development settings**
-
-#### 1.3 AI Service Integration
-- **Test Cerebras API key setup**
-- **Replace mock AI responses with real calls**
-- **Add AI service health checks**
-- **Implement fallback strategies**
-
-#### 1.4 Media Storage Pipeline
-- **Test S3/cloud storage integration**
-- **Verify video upload/download flow**
-- **Add media processing validation**
-- **Implement presigned URL generation**
-
-### 🧪 **Success Criteria**
-- ✅ App starts without errors
-- ✅ Database connects and initializes
-- ✅ AI features return real responses
-- ✅ Video upload/download works
-- ✅ Basic user registration/login flow functions
+**Success Metrics**:
+- 100+ wallet connections
+- $DANCE token with >$10k liquidity
+- 50+ chains shared on Farcaster
+- 10+ chain tokens trading
 
 ---
 
-## 🏗️ **Phase 2: Core Logic Implementation** (Week 2)
-*Priority: High | Focus: Make dance chains work*
+## Phase 2: Economic Layer
+**Timeline**: Q2 2025  
+**Goal**: Build sustainable tokenized economy with fee mechanisms
 
-### 🎯 **Objectives**
-- Implement real move verification
-- Enable chain participation flow
-- Add video processing capabilities
-- Ensure dance mechanics are functional
+### 2.1 NFT Passport System
+- [ ] Design Passport NFT collection on Base
+- [ ] Implement Passport minting flow (ETH + $DANCE required)
+- [ ] Passport verification for platform actions
+- [ ] Passport metadata: stats, achievements, reputation
+- [ ] Passport benefits: reduced fees, exclusive features
 
-### 📦 **Deliverables**
+### 2.2 Move-Specific Tokenization
+- [ ] Individual moves become unique tokens
+- [ ] Naming convention: $MOONWALK, $BREAKDANCE, $SPIN, etc.
+- [ ] AI categorization of moves for token creation
+- [ ] Move token rarity system based on difficulty/uniqueness
+- [ ] Bundle system: chain packs, move collections
 
-#### 2.1 Pose Analysis Engine
-- **Enhance MediaPipe integration** (ENHANCEMENT FIRST)
-- **Implement pose landmark extraction**
-- **Add pose normalization and preprocessing**
-- **Create pose similarity algorithms (DTW/cosine)**
+### 2.3 LP Fee Distribution
+- [ ] Implement 0.6% LP fee on all token trades
+- [ ] Fee split: 40% creator, 40% platform, 20% performer
+- [ ] Auto-compounding for $DANCE stakers
+- [ ] Real-time fee tracking dashboard
+- [ ] Claimable fee interface
 
-#### 2.2 Move Verification System
-- **Replace mock verification logic**
-- **Implement sequence comparison**
-- **Add verification score calculation**
-- **Create verification thresholds and rules**
+### 2.4 Token Trading Interface
+- [ ] In-app DEX for dance token trading
+- [ ] Chart visualizations for token performance
+- [ ] Portfolio view for held tokens
+- [ ] Trading leaderboard
+- [ ] Token discovery feed
 
-#### 2.3 Chain Participation Flow
-- **Complete add-move-to-chain functionality**
-- **Add chain progression validation**
-- **Implement move ordering and sequencing**
-- **Add participant limits and constraints**
+### 2.5 Revenue Model Implementation
+- [ ] Passport mints (0.01 ETH + $DANCE)
+- [ ] Chain creation fees
+- [ ] Premium features for Passport holders
+- [ ] Sponsored challenges with token rewards
+- [ ] Marketplace transaction fees
 
-#### 2.4 Video Processing Pipeline
-- **Enhance video duration extraction**
-- **Add video format validation**
-- **Implement video compression (if needed)**
-- **Add thumbnail generation**
-
-### 🧪 **Success Criteria**
-- ✅ Users can create dance chains
-- ✅ Users can join chains with proper verification
-- ✅ Move sequences are accurately validated
-- ✅ Video processing works reliably
-- ✅ Chain completion logic functions
-
----
-
-## 🎨 **Phase 3: UI/UX Polish** (Week 3)
-*Priority: Medium | Focus: Exceptional user experience*
-
-### 🎯 **Objectives**
-- Complete missing UI interactions
-- Add comprehensive error handling
-- Implement loading and feedback states
-- Ensure consistent design language
-
-### 📦 **Deliverables**
-
-#### 3.1 Video Playback System
-- **Implement sequential video playback**
-- **Add video controls and navigation**
-- **Create playlist-style chain viewing**
-- **Add fullscreen and quality options**
-
-#### 3.2 Error Handling & Feedback
-- **Add comprehensive error boundaries**
-- **Implement user-friendly error messages**
-- **Create toast notifications system**
-- **Add retry mechanisms for failed operations**
-
-#### 3.3 Loading States & Performance
-- **Implement skeleton screens**
-- **Add progressive loading**
-- **Create optimistic updates**
-- **Add loading indicators for all async operations**
-
-#### 3.4 Interaction Polish
-- **Complete missing button handlers**
-- **Add hover states and micro-interactions**
-- **Implement keyboard navigation**
-- **Add accessibility improvements**
-
-### 🧪 **Success Criteria**
-- ✅ All UI interactions work smoothly
-- ✅ Users receive clear feedback for all actions
-- ✅ Loading states prevent user confusion
-- ✅ Error states guide users to resolution
-- ✅ App feels polished and professional
+**Success Metrics**:
+- 500+ Passports minted
+- $100k+ in total trading volume
+- 200+ unique move tokens created
+- $10k+ in LP fees generated
+- 50+ daily active traders
 
 ---
 
-## 🧪 **Phase 4: Testing & Quality Assurance** (Week 4)
-*Priority: Medium | Focus: Reliability and confidence*
+## Phase 3: AI Agent Integration
+**Timeline**: Q3 2025  
+**Goal**: Introduce autonomous AI dancers (Dots) that generate passive income
 
-### 🎯 **Objectives**
-- Establish testing infrastructure
-- Achieve high test coverage
-- Validate end-to-end flows
-- Prevent regressions
+### 3.1 AI Dance Agent Foundation
+- [ ] Research dance generation models
+- [ ] Build pose-to-animation pipeline
+- [ ] Train model on dance move dataset
+- [ ] Create Dot personality framework
+- [ ] Develop agent memory and learning system
 
-### 📦 **Deliverables**
+### 3.2 Dot Sponsorship System
+- [ ] Design Dot NFT collection
+- [ ] Implement Dot minting (ETH + $DANCE required)
+- [ ] Sponsor provides initial capital and strategy
+- [ ] Dot wallet creation and management
+- [ ] Sponsor dashboard for monitoring Dots
 
-#### 4.1 Unit Testing
-- **Set up Jest/Vitest for frontend**
-- **Configure pytest for backend**
-- **Add unit tests for core business logic**
-- **Test utility functions and helpers**
+### 3.3 Autonomous Agent Participation
+- [ ] Dots autonomously join dance chains
+- [ ] AI-generated move creation using Llama/GPT-4
+- [ ] Pose verification for AI-generated moves
+- [ ] Economic decision-making (buy/sell moves)
+- [ ] Social interaction on Farcaster
 
-#### 4.2 Integration Testing
-- **Test API endpoints**
-- **Validate database operations**
-- **Test external service integrations**
-- **Add component integration tests**
+### 3.4 Passive Income Distribution
+- [ ] Dots trade move tokens autonomously
+- [ ] Fees generated flow to sponsor wallets
+- [ ] Auto-reinvestment strategies
+- [ ] Performance analytics per Dot
+- [ ] Sponsor withdrawal mechanisms
 
-#### 4.3 End-to-End Testing
-- **Set up Playwright or Cypress**
-- **Test complete user journeys**
-- **Validate critical flows (create→join→complete chain)**
-- **Add cross-browser testing**
+### 3.5 Dot Behaviors & Culture
+- [ ] Celebration mechanics ($BALLOON equivalent)
+- [ ] Dots practice (buy moves), perform (sell), celebrate (burn)
+- [ ] Holiday and event-based behaviors
+- [ ] Collaboration between Dots
+- [ ] Reputation and influence system
 
-#### 4.4 Quality Gates
-- **Implement pre-commit hooks**
-- **Add linting and formatting**
-- **Configure CI/CD pipeline**
-- **Add code coverage requirements**
-
-### 🧪 **Success Criteria**
-- ✅ 80%+ code coverage
-- ✅ All critical user flows tested
-- ✅ CI/CD pipeline passing
-- ✅ No known blocking bugs
-- ✅ Performance benchmarks met
-
----
-
-## ⚡ **Phase 5: Performance & Optimization** (Week 5)
-*Priority: Low | Focus: Scalability and speed*
-
-### 🎯 **Objectives**
-- Optimize for real-world usage
-- Implement caching strategies
-- Improve perceived performance
-- Prepare for scale
-
-### 📦 **Deliverables**
-
-#### 5.1 Frontend Optimization
-- **Implement code splitting**
-- **Add lazy loading for routes**
-- **Optimize bundle size**
-- **Add service worker for caching**
-
-#### 5.2 Backend Optimization
-- **Implement API response caching**
-- **Add database query optimization**
-- **Configure connection pooling**
-- **Add background job processing**
-
-#### 5.3 Media Optimization
-- **Implement video streaming**
-- **Add progressive video loading**
-- **Optimize video compression**
-- **Add CDN integration**
-
-#### 5.4 Monitoring & Analytics
-- **Add performance monitoring**
-- **Implement error tracking**
-- **Add user analytics**
-- **Create performance dashboards**
-
-### 🧪 **Success Criteria**
-- ✅ Page load times < 3 seconds
-- ✅ Video playback starts within 2 seconds
-- ✅ API responses < 500ms average
-- ✅ App works on slow connections
-- ✅ Performance monitoring active
+**Success Metrics**:
+- 100+ Dots created and sponsored
+- 50+ AI-generated moves per day
+- $50k+ in Dot-generated trading volume
+- Average $100/month passive income per sponsor
+- 80%+ sponsor satisfaction rate
 
 ---
 
-## 🚀 **Phase 6: Production Readiness** (Week 6)
-*Priority: Low | Focus: Launch preparation*
+## Phase 4: Full Native Alignment
+**Timeline**: Q4 2025  
+**Goal**: Complete autonomous dance economy ecosystem
 
-### 🎯 **Objectives**
-- Deploy to production environment
-- Establish monitoring and maintenance
-- Create comprehensive documentation
-- Prepare for user acquisition
+### 4.1 Virtual Venues & Properties
+- [ ] Design venue NFT system (studios, clubs, stages)
+- [ ] Property ownership mechanics
+- [ ] Venue-hosted events and competitions
+- [ ] Revenue sharing for property owners
+- [ ] Virtual real estate marketplace
 
-### 📦 **Deliverables**
+### 4.2 Complete Autonomous Economy
+- [ ] Citywide events system (battles, showcases)
+- [ ] Weather/mood system affecting Dot behavior
+- [ ] Economic cycles and seasons
+- [ ] Resource tokens (energy, practice time, etc.)
+- [ ] Complex inter-agent trading networks
 
-#### 6.1 Deployment & Infrastructure
-- **Configure production deployment**
-- **Set up monitoring and alerting**
-- **Implement backup and recovery**
-- **Add security hardening**
+### 4.3 Advanced Miniapp Generation
+- [ ] Panes-style integration for Farcaster
+- [ ] AI-generated dance visualizations
+- [ ] "Show my followers..." prompt system
+- [ ] Custom move showcases
+- [ ] Interactive frames for challenges
 
-#### 6.2 Documentation
-- **Create user documentation**
-- **Write developer setup guides**
-- **Document API endpoints**
-- **Add troubleshooting guides**
+### 4.4 Cross-Platform Integration
+- [ ] Native ecosystem collaboration
+- [ ] Shared tokens with Native city
+- [ ] Cross-platform Dot interactions
+- [ ] IRL dance event integration
+- [ ] Physical merchandise for top holders
 
-#### 6.3 User Testing Preparation
-- **Create user testing scenarios**
-- **Prepare feedback collection**
-- **Set up A/B testing framework**
-- **Plan user onboarding flow**
+### 4.5 Governance & DAOification
+- [ ] $DANCE token governance
+- [ ] Community proposals for platform changes
+- [ ] Treasury management
+- [ ] Grant programs for creators
+- [ ] Decentralized moderation
 
-#### 6.4 Launch Preparation
-- **Conduct security audit**
-- **Perform load testing**
-- **Create rollback procedures**
-- **Prepare communication plan**
-
-### 🧪 **Success Criteria**
-- ✅ App deployed to production
-- ✅ Monitoring and alerts configured
-- ✅ Documentation complete
-- ✅ Security audit passed
-- ✅ Ready for user testing
-
----
-
-## 📊 **Timeline & Milestones**
-
-| Phase | Duration | Key Deliverable | Status |
-|-------|----------|-----------------|---------|
-| Phase 1 | Week 1 | Working app with real AI/database | 🔄 In Progress |
-| Phase 2 | Week 2 | Functional dance chains | ⏳ Pending |
-| Phase 3 | Week 3 | Polished UI/UX | ⏳ Pending |
-| Phase 4 | Week 4 | Comprehensive testing | ⏳ Pending |
-| Phase 5 | Week 5 | Optimized performance | ⏳ Pending |
-| Phase 6 | Week 6 | Production ready | ⏳ Pending |
-
-**Total Timeline: 6 weeks to user testing readiness**
+**Success Metrics**:
+- 50+ virtual venues owned
+- 1000+ active Dots in ecosystem
+- $1M+ monthly trading volume
+- 5000+ Passport holders
+- Self-sustaining economy with minimal centralized intervention
 
 ---
 
-## 🎯 **Success Metrics**
+## Key Architectural Changes
 
-### Technical Metrics
-- ✅ **Zero blocking bugs** in critical user flows
-- ✅ **95%+ uptime** during testing period
-- ✅ **<3 second page loads** across all devices
-- ✅ **<500ms API response times** average
+### From Web2 to Web3
+```
+Current: React + FastAPI + PostgreSQL
+Target:  React + FastAPI + Base Chain + IPFS + Supabase
 
-### User Experience Metrics
-- ✅ **Task completion rate >90%** for core flows
-- ✅ **User satisfaction score >4.5/5** in testing
-- ✅ **Error rate <5%** during user interactions
-- ✅ **Accessibility compliance** (WCAG 2.1 AA)
+Changes:
+- Wallet-based auth alongside traditional auth
+- Smart contracts for core logic (tokens, NFTs, fees)
+- IPFS/Arweade for video storage
+- Supabase for performance caching
+- Event-driven architecture for Dot coordination
+```
 
-### Product Metrics
-- ✅ **Dance chain creation** fully functional
-- ✅ **Chain participation** with accurate verification
-- ✅ **AI features** providing value
-- ✅ **Social features** encouraging engagement
-
----
-
-## 🔍 **Risks & Mitigation**
-
-### Technical Risks
-- **AI API rate limits**: Implement caching and request queuing
-- **Video processing complexity**: Start with simple verification, enhance iteratively
-- **Database performance**: Implement proper indexing and query optimization
-
-### Product Risks
-- **Verification too strict/loose**: A/B test different thresholds with users
-- **AI quality inconsistent**: Add user feedback mechanisms for AI responses
-- **User adoption**: Focus on viral mechanics and social features
-
-### Timeline Risks
-- **Scope creep**: Stick to ENHANCEMENT FIRST principle
-- **Technical debt**: Regular consolidation audits
-- **Dependencies**: Plan for external API downtime
+### New Technology Stack
+- **Blockchain**: Base (L2 Ethereum)
+- **Wallet**: Privy or Coinbase Wallet
+- **Token Launch**: Clanker protocol or custom contracts
+- **Social**: Farcaster (Neynar API)
+- **AI Agents**: Langchain + Claude/Llama
+- **Storage**: IPFS + Supabase cache
+- **Agent Tools**: Coinbase AgentKit + 0x API
 
 ---
 
-## 🚀 **Post-Testing Roadmap** (Future)
+## Implementation Challenges
 
-Once user testing is successful, focus on:
-- Advanced AI features (pose prediction, style analysis)
-- Social features (following, notifications, leaderboards)
-- Mobile app development
-- Multi-language support
-- Advanced video editing tools
-- Integration with music platforms
+### 1. Technical Complexity
+- **Challenge**: Moving from centralized to decentralized architecture
+- **Solution**: Gradual migration, dual-mode operation during transition
+- **Mitigation**: Start with hybrid approach, move fully onchain over time
+
+### 2. AI Dance Generation
+- **Challenge**: Training models to generate realistic, verifiable dance moves
+- **Solution**: Partner with dance studios for motion capture data
+- **Mitigation**: Start with simpler moves, increase complexity over time
+
+### 3. Tokenomics Design
+- **Challenge**: Balancing inflation, value capture, and user incentives
+- **Solution**: Work with tokenomics experts, study successful models
+- **Mitigation**: Conservative approach, adjustable parameters via governance
+
+### 4. User Onboarding (UX)
+- **Challenge**: Crypto UX is complex for mainstream users
+- **Solution**: Embedded wallets, fiat onramps, guided flows
+- **Mitigation**: Progressive disclosure, optional advanced features
+
+### 5. Video Storage Costs
+- **Challenge**: On-chain video storage is prohibitively expensive
+- **Solution**: IPFS/Arweave with onchain references
+- **Mitigation**: Compression, tiered storage (recent vs archive)
+
+### 6. Regulatory Compliance
+- **Challenge**: Token regulations vary by jurisdiction
+- **Solution**: Legal consultation, clear disclaimers
+- **Mitigation**: Utility-first token design, avoid securities classification
 
 ---
 
-*This roadmap follows our core principles: enhancement over creation, aggressive consolidation, preventing bloat, DRY architecture, clean separation of concerns, modular design, performance optimization, and organized domain-driven structure.*</content>
-</xai:function_call">### Summary
+## Success Indicators
 
-I've created a comprehensive ROADMAP.md that takes DegenDancing from its current prototype state to production-ready user testing. The roadmap is structured in 6 phases over 6 weeks, prioritizing critical infrastructure first, then core functionality, UI polish, testing, performance, and finally production readiness.
+### By End of Phase 1
+- Platform accessible via Base wallet
+- First 100 Passports minted
+- $DANCE token launched with liquidity
+- Farcaster integration live
 
-**Key highlights of the roadmap:**
+### By End of Phase 2
+- $100k+ total trading volume
+- 500+ unique tokens created
+- Sustainable fee revenue model
+- Active trading community
 
-1. **Phase 1 (Week 1)**: Critical infrastructure - database, environment config, real AI integration
-2. **Phase 2 (Week 2)**: Core logic - real move verification, chain participation flow  
-3. **Phase 3 (Week 3)**: UI/UX polish - complete interactions, error handling, loading states
-4. **Phase 4 (Week 4)**: Testing - comprehensive test coverage and quality assurance
-5. **Phase 5 (Week 5)**: Performance optimization - caching, lazy loading, monitoring
-6. **Phase 6 (Week 6)**: Production readiness - deployment, documentation, security
+### By End of Phase 3
+- 100+ AI agents generating passive income
+- Autonomous economy showing emergent behaviors
+- Creator economy with $50k+ monthly earnings
+- Featured in crypto/AI media
 
-The roadmap explicitly follows your core principles:
-- **ENHANCEMENT FIRST**: Focuses on enhancing existing components rather than creating new ones
-- **AGGRESSIVE CONSOLIDATION**: Includes systematic audits and cleanup
-- **PREVENT BLOAT**: Careful feature prioritization and scope control
-- **DRY/CLEAN/MODULAR**: Emphasizes single sources of truth and clear separation of concerns
-- **PERFORMANT/ORGANIZED**: Performance optimization and domain-driven design throughout
+### By End of Phase 4
+- Self-sustaining tokenized dance economy
+- 1000+ active participants (human + AI)
+- Decentralized governance active
+- Partnership with Native ecosystem
 
-The roadmap includes success criteria for each phase, risk mitigation strategies, and clear success metrics to ensure the app meets high standards for UI/UX, product design, and systems architecture. 
+---
 
-Would you like me to start implementing any specific phase or component from this roadmap? I'd recommend beginning with Phase 1's database setup and environment configuration as the foundation for everything else. 
+## Philosophical Alignment
 
-## Next Steps
+### Native's Core Belief
+"Instead of AI *taking* our active-income jobs, we should *give* them work to generate passive-income."
 
-Let's tackle **Phase 1: Critical Infrastructure** first. I can help you:
+### DegenDancing's Interpretation
+"Instead of AI *replacing* dancers, we should *partner* with AI dancers who learn from us and generate passive income through their performances in a digital dance economy."
 
-1. **Set up the database** - create initialization scripts and migrations
-2. **Configure environment variables** - document all required settings
-3. **Test AI integration** - get real Cerebras API responses working
-4. **Verify media storage** - ensure video upload/download pipeline functions
+### Shared Values
+- Post-AI world preparation
+- Passive income generation
+- Human-AI collaboration
+- Tokenized creative economies
+- Social coordination mechanisms
+- Community-owned platforms
 
-Which would you like to start with?</content>
-</xai:function_call name="todo_write">
-<parameter name="todos">[{"id":"roadmap_phase1_critical","content":"Phase 1: Critical Infrastructure - Database setup, environment config, real AI integration","status":"in-progress","priority":"high"}]
+---
+
+## Next Steps (Immediate)
+
+1. **Decide on commitment level** - Full alignment or selective features?
+2. **Assemble team** - Smart contract dev, AI/ML engineer, tokenomics advisor
+3. **Fundraising** - Grants, angels, or community presale
+4. **Technical prototype** - Prove core concepts (wallet, token, basic AI)
+5. **Community building** - Early adopters, testers, content creators
+6. **Legal review** - Ensure compliance before token launch
+
+---
+
+## Alternative: Selective Integration
+
+If full alignment isn't feasible, consider these high-value features:
+
+### Minimal Viable Alignment (MVA)
+- Basic $DANCE token for platform access
+- Farcaster sharing integration  
+- NFT Passports for verified users
+- Simple move tokenization
+- **Time**: 2-3 months, **Cost**: $30-50k
+
+### Medium Alignment
+- MVA + LP fee distribution
+- AI co-creation tools (not full Dots)
+- Token trading marketplace
+- **Time**: 4-6 months, **Cost**: $100-150k
+
+### Full Alignment
+- Complete roadmap as outlined above
+- **Time**: 12-18 months, **Cost**: $500k-1M
+
+---
+
+## Conclusion
+
+DegenDancing has strong potential to become **"Native for dance culture"** - a digital dance city where AI agents and humans create, trade, and celebrate dance through a tokenized economy.
+
+The transformation is ambitious but achievable through phased implementation, combining:
+- Social content creation (TikTok-like virality)
+- Tokenized economies (Native-style value capture)
+- AI agents (autonomous participation)
+- Move-to-earn (GameFi incentives)
+
+**The opportunity**: Be first to market in the "tokenized dance economy" category, riding the waves of agentic AI, social tokens, and creator economies.
+
+**The risk**: Execution complexity, regulatory uncertainty, market timing
+
+**The reward**: Redefining how creators earn from their work in a post-AI world
