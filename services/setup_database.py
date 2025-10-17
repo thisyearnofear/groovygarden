@@ -53,6 +53,7 @@ def create_tables():
             display_name VARCHAR(100),
             bio TEXT,
             avatar_path VARCHAR(500),
+            avatar_cid VARCHAR(255),
             location VARCHAR(100),
             dance_styles VARCHAR(500),
             total_chains_created INTEGER DEFAULT 0,

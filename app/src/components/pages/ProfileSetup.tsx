@@ -35,7 +35,18 @@ export default function ProfileSetup() {
 
   useEffect(() => {
     checkExistingProfile();
-  }, []);
+    
+    // Auto-populate form with Base Account data if available
+    if (userDetails?.address) {
+      // Use the first 8 characters of the address as default username
+      const defaultUsername = userDetails.address.slice(0, 8);
+      setFormData(prev => ({
+        ...prev,
+        username: prev.username || defaultUsername,
+        displayName: prev.displayName || `User ${defaultUsername}`
+      }));
+    }
+  }, [userDetails]);
 
   const checkExistingProfile = async () => {
     try {
@@ -188,6 +199,11 @@ export default function ProfileSetup() {
                 <p className="text-xs text-gray-500 mt-1">
                   This will be your unique identifier on the platform
                 </p>
+                {userDetails?.address && !formData.username && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    Auto-filled from your Base Account address: {userDetails.address.slice(0, 8)}...
+                  </p>
+                )}
               </div>
 
               {/* Display Name */}

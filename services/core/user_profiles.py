@@ -12,6 +12,7 @@ class UserProfile(Table):
     display_name: Optional[str] = None
     bio: Optional[str] = None
     avatar_path: Optional[str] = None  # Path to avatar image in Solar media storage
+    avatar_cid: Optional[str] = None   # IPFS CID for avatar image
     location: Optional[str] = None
     dance_styles: Optional[str] = None  # Comma-separated list of preferred styles
     total_chains_created: int = ColumnDetails(default=0)

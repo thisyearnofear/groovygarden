@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!/Users/udingethe/dev/degendancing/**)",
+      "Edit(!/Users/udingethe/dev/degendancing/**)"
+    ],
+    "allow": [
+      "Read(/Users/udingethe/dev/degendancing/**)",
+      "Edit(/Users/udingethe/dev/degendancing/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}

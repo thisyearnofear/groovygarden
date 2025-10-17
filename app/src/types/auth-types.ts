@@ -1,8 +1,9 @@
 
 export interface UserDetails {
   active: boolean;
-  client_id: string; 
+  client_id: string;
   sub: string;
-  user_uuid: string;
+  user_uuid?: string;
   email: string;
+  address?: string;
 }

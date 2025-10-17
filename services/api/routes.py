@@ -20,10 +20,7 @@ import asyncio
 import logging
 import traceback
 import contextvars
-import httpx
-import jwt
 import json
-import requests
 from pathlib import Path
 import builtins
 
@@ -34,17 +31,13 @@ from functools import partial, wraps
 from uuid import UUID
 import uuid
 
-from solar.access import User
+from core.user import User
 from solar.media import MediaFile
 
 from api.utils import get_swagger_ui_html
-from api.models import TokenExchangeRequest, TokenResponse, TokenValidationRequest, LogoutResponse
+# Auth models no longer needed for Base Accounts
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-ROUTER_BASE_URL = os.environ.get("ROUTER_BASE_URL")
-SOLAR_APP_TOKEN_URL = f"{ROUTER_BASE_URL}/innerApp/oauth2/token"
-SOLAR_APP_INTROSPECT_URL = f"{ROUTER_BASE_URL}/innerApp/oauth2/introspect"
-REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+# Base Accounts don't need JWT secrets or refresh tokens
 
 
 
@@ -191,25 +184,22 @@ async def handle_validation_errors(request: Request, exc: RequestValidationError
         content={"error": "Validation failed", "details": exc.errors()}
     )
 
-# We need to put a token endpoint here, but we're injecting the token,
-# so we'll just put a mock endpoint here.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/mockedTokenEndpoint/")
-ENV = os.environ.get("ENV", "deployment")
+ENV = os.environ.get("ENV", "development")
 
 def get_auth_origins():
-    if ENV == "sandbox":
+    if ENV in ["sandbox", "development"]:
         origins = [
             os.environ.get("SANDBOX_FRONTEND_URL", ""),
-            os.environ.get("SANDBOX_BACKEND_URL", ""),
+            os.environ.get("FRONTEND_URL", ""),
         ]
     else:
         origins = [os.environ.get("PUBLIC_DOMAIN", "")]
-    
+
     return [origin for origin in origins if origin]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -295,186 +285,40 @@ async def custom_swagger_ui_html():
 # Auth Routes
 ##############################################################################
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(request: Request):
     try:
-        base_url = os.getenv("ROUTER_BASE_URL")
-        if not base_url:
-            raise HTTPException(status_code=500, detail="ROUTER_BASE_URL is not set, could not authenticate user")
-        
-        try:
-            decoded_token = jwt.decode(token, options={"verify_signature": False})
-            
-            jti = decoded_token.get("jti")
-            if not jti:
-                raise HTTPException(status_code=401, detail="Invalid token format")
-            
-            exp = decoded_token.get("exp")
-            if exp is not None and exp < datetime.utcnow().timestamp():
-                raise HTTPException(status_code=401, detail="Token expired")
-        
-        except jwt.DecodeError:
-            raise HTTPException(status_code=401, detail="Malformed token")
-        
-        token_url = f"{base_url}/innerApp/oauth2/introspect"
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            response = await client.post(token_url, json={"token": jti, "token_type_hint": "access_token"})
-            if response.status_code != 200:
-                raise HTTPException(status_code=401, detail="Unauthorized")
-            
-            json_response = response.json()
-            if not json_response.get("active", False):
-                raise HTTPException(status_code=401, detail="Unauthorized")
-            
-            user_uuid = json_response.get("userUuid")
-            email = json_response.get("email")
-            if not user_uuid or not email:
-                raise HTTPException(status_code=401, detail="Invalid user data")
-            
-            user = User(id=user_uuid, email=email)
-            return user
+        # For Base Accounts, we use the X-User-Address header
+        user_address = request.headers.get("X-User-Address")
+        if not user_address:
+            raise HTTPException(status_code=401, detail="No user address provided")
+
+        # Validate that it's a proper Ethereum address format
+        if not user_address.startswith("0x") or len(user_address) != 42:
+            raise HTTPException(status_code=401, detail="Invalid user address format")
+
+        user = User(id=user_address, email=f"{user_address[:8]}@base.local")
+        return user
+
     except HTTPException:
         raise
     except Exception as e:
-        print(f"get_current_user failed with error: {type(e).__name__}")
+        logger.error(f"get_current_user failed: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-def extract_domain(url):
-    if not url:
-        return None
-    
-    # Remove protocol
-    if url.startswith("http://"):
-        url = url[7:]
-    elif url.startswith("https://"):
-        url = url[8:]
-    
-    # Remove trailing slash
-    if url.endswith("/"):
-        url = url[:-1]
-    
-    return url
+# Domain extraction no longer needed for Base Accounts
 
-@app.post('/api/auth/token', response_model=TokenResponse, include_in_schema=False)
-async def exchange_token(request: Request, body: TokenExchangeRequest = Body(...)):    
-    try:
-        params = body.model_dump(exclude_none=True)
-        if params.get("grant_type") == REFRESH_TOKEN_COOKIE_NAME:
-            refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
-            if not refresh_token:
-                return JSONResponse(
-                    status_code=401,
-                    content={
-                        "status": "auth_required",
-                        "message": "Authentication required",
-                        "token_type": "bearer",
-                        "access_token": "",
-                        "expires_in": 0
-                    }
-                )
-
-            params[REFRESH_TOKEN_COOKIE_NAME] = refresh_token
-        
-        if params.get("grant_type") == REFRESH_TOKEN_COOKIE_NAME and params.get(REFRESH_TOKEN_COOKIE_NAME):
-            try:
-                refresh_token = params[REFRESH_TOKEN_COOKIE_NAME]
-                payload = jwt.decode(refresh_token, options={"verify_signature": False})
-                
-                if payload and payload.get("jti"):
-                    params[REFRESH_TOKEN_COOKIE_NAME] = payload["jti"]
-            except Exception as e:
-                logger.warning("Error extracting JTI from refresh token")
-
-        response = requests.post(
-            SOLAR_APP_TOKEN_URL,
-            json=params,
-            headers={"Content-Type": "application/json", "Accept": "application/json"}
-        )
-        
-        if not response.ok:
-            return JSONResponse(
-                    status_code=401,
-                    content={
-                        "status": "auth_required",
-                        "message": "Authorization code invalid or expired",
-                        "token_type": "bearer",
-                        "access_token": "",
-                        "expires_in": 0
-                    }
-                )
-        
-        tokens = response.json()
-        
-        # Safe null check for access token
-        access_token = tokens.get("access_token")
-        if not access_token:
-            return HTTPException(status_code=401, detail="Received incomplete token data from server")
-        
-        token_response = TokenResponse(
-            access_token=access_token,
-            token_type=tokens.get("token_type", "bearer"),
-            expires_in=tokens.get("expires_in", 3600)
-        )
-        
-        content = token_response.model_dump()
-        api_response = JSONResponse(content=content)
-        
-        # Safe null check for refresh token
-        refresh_token_value = tokens.get(REFRESH_TOKEN_COOKIE_NAME)
-        if refresh_token_value:
-            if ENV == "sandbox" and not os.environ.get("SANDBOX_BACKEND_URL", None):
-              return HTTPException(status_code=401, detail="Token exchange failed: sandbox frontend URL not set")
-            
-            if ENV == "deployment" and not os.environ.get("PUBLIC_DOMAIN", None):
-              return HTTPException(status_code=401, detail="Token exchange failed: public domain not set")
-            
-            domain = None
-            if ENV == "sandbox":
-                domain = extract_domain(os.environ.get("SANDBOX_BACKEND_URL"))
-            else:
-                domain = extract_domain(os.environ.get("PUBLIC_DOMAIN"))
-
-            api_response.set_cookie(
-                key=REFRESH_TOKEN_COOKIE_NAME,
-                value=refresh_token_value,
-                httponly=True,
-                secure=True,
-                samesite="none" if ENV == "sandbox" else "strict",
-                domain=domain,
-                path="/api/auth"
-            )
-        
-        return api_response
-        
-    except Exception as e:
-        return HTTPException(status_code=401, detail=f"Token exchange failed: {str(e)}")
+# Base Accounts don't need traditional token exchange
+# Authentication is handled client-side via wallet connection
+@app.post('/api/auth/token', include_in_schema=False)
+async def exchange_token():
+    # Return success for compatibility - Base Accounts handle auth differently
+    return JSONResponse(content={"status": "success", "message": "Base Account authentication active"})
 
 
-@app.post('/api/auth/logout', response_model=LogoutResponse, include_in_schema=False)
+# Base Accounts handle logout client-side
+@app.post('/api/auth/logout', include_in_schema=False)
 async def logout():
-    response = JSONResponse(content={"success": True})
-    
-    if ENV == "sandbox" and not os.environ.get("SANDBOX_BACKEND_URL", None):
-      return HTTPException(status_code=401, detail="Logout failed: sandbox frontend URL not set")
-    
-    if ENV == "deployment" and not os.environ.get("PUBLIC_DOMAIN", None):
-      return HTTPException(status_code=401, detail="Logout failed: public domain not set")
-    
-    domain = None
-    if ENV == "sandbox":
-        domain = extract_domain(os.environ.get("SANDBOX_BACKEND_URL"))
-    else:
-        domain = extract_domain(os.environ.get("PUBLIC_DOMAIN"))
-    
-    response.delete_cookie(
-        key=REFRESH_TOKEN_COOKIE_NAME,
-        path="/api/auth",
-        secure=True,
-        httponly=True,
-        samesite="none" if ENV == "sandbox" else "strict",
-        domain=domain,
-    )
-    
-    return response
+    return JSONResponse(content={"success": True})
 
 
 ##############################################################################

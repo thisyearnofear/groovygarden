@@ -10,8 +10,31 @@ import "./index.css";
 // Screenshot component removed - was for Solar platform integration
 import Router from "./components/Router.tsx";
 import { client } from './lib/sdk/client.gen';
-client.setConfig({ 
-  baseUrl: "https://" + window.location.hostname.replace("5173", "8000"),
+// Configure API client based on environment
+const isProduction = import.meta.env.PROD;
+const protocol = isProduction ? "https://" : "http://";
+
+// More robust URL construction
+let baseUrl;
+if (isProduction) {
+  // In production, assume backend is on same domain
+  baseUrl = protocol + window.location.host;
+} else {
+  // In development, frontend is on 5173, backend is on 8000
+  baseUrl = protocol + window.location.hostname + ":8000";
+}
+
+console.log('🔧 API Client Config:', {
+  isProduction,
+  protocol,
+  baseUrl,
+  hostname: window.location.hostname,
+  port: window.location.port,
+  fullUrl: window.location.href
+});
+
+client.setConfig({
+  baseUrl: baseUrl,
 });
 import { AuthProvider } from "@/auth/AuthProvider.tsx";
 
@@ -24,11 +47,10 @@ const Root = () => {
   return (
     <>
       <AuthProvider
-          client={client}
-          clientId={"degen-dancing-hackathon"}
-          baseInfranodeUrl={window.location.hostname.replace("5173", "8000")}
-          loginRedirectUrl={window.location.origin + "/auth/login"}
-          appName={"DegenDancing - AI-Powered Dance Chains"}
+      client={client}
+      clientId={"degen-dancing-hackathon"}
+      baseInfranodeUrl={baseUrl}
+      appName={"DegenDancing - AI-Powered Dance Chains"}
       >
         <BrowserRouter>
           <Routes>

@@ -5,6 +5,7 @@ from .config import config
 import datetime
 import boto3
 import uuid
+import os
 
 
 class S3Client:
@@ -18,8 +19,12 @@ class S3Client:
         self.aws_bucket_name = self.s3_client_keys["aws_bucket_name"]
         self.expiration = None
         self.s3_client = None
+        # Check if we should use direct AWS credentials
+        self.use_direct_aws = not self.org_id or self.org_id == "your-solar-org-id"
 
     def get_base_path(self) -> str:
+        if self.use_direct_aws:
+            return "direct"  # Use a simple base path for direct AWS access
         return f"{self.org_id}/{self.project_id}"
 
     def refresh_client_if_expired(self):
@@ -29,29 +34,51 @@ class S3Client:
             and self.expiration > datetime.datetime.now(datetime.timezone.utc)
         ):
             return
-        response = requests.post(
-            f"{self.api_url}/aws/get-s3-credentials",
-            json={"orgId": self.org_id, "projectId": self.project_id},
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-        )
-        if response.status_code != 200:
-            raise Exception("Failed to refresh credentials")
-        credentials = response.json()
-        client = boto3.client(
-            "s3",
-            aws_access_key_id=credentials["accessKeyId"],
-            aws_secret_access_key=credentials["secretAccessKey"],
-            aws_session_token=credentials["sessionToken"],
-            region_name=self.aws_region,
-            config=boto3.session.Config(signature_version="s3v4"),
-        )
-        self.expiration = datetime.datetime.fromisoformat(
-            credentials["expiration"].replace("Z", "+00:00")
-        )
-        self.s3_client = client
+            
+        if self.use_direct_aws:
+            # Use direct AWS credentials from environment
+            aws_access_key_id = os.getenv("AWS_S3_KEY")
+            aws_secret_access_key = os.getenv("AWS_S3_SECRET")
+            
+            if not aws_access_key_id or not aws_secret_access_key:
+                raise Exception("AWS credentials not found in environment variables")
+                
+            client = boto3.client(
+                "s3",
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                region_name=self.aws_region,
+                config=boto3.session.Config(signature_version="s3v4"),
+            )
+            
+            # Set expiration to far in the future for direct credentials
+            self.expiration = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=365)
+            self.s3_client = client
+        else:
+            # Use Solar's credential system
+            response = requests.post(
+                f"{self.api_url}/aws/get-s3-credentials",
+                json={"orgId": self.org_id, "projectId": self.project_id},
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
+            if response.status_code != 200:
+                raise Exception("Failed to refresh credentials")
+            credentials = response.json()
+            client = boto3.client(
+                "s3",
+                aws_access_key_id=credentials["accessKeyId"],
+                aws_secret_access_key=credentials["secretAccessKey"],
+                aws_session_token=credentials["sessionToken"],
+                region_name=self.aws_region,
+                config=boto3.session.Config(signature_version="s3v4"),
+            )
+            self.expiration = datetime.datetime.fromisoformat(
+                credentials["expiration"].replace("Z", "+00:00")
+            )
+            self.s3_client = client
 
 
 s3_client = None

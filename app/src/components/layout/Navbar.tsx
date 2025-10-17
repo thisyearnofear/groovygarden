@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
-  const { userDetails, logout } = useAuthContext();
+  const { userDetails, logout, login } = useAuthContext();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,8 +109,8 @@ export default function Navbar() {
                 </Button>
               </div>
             ) : (
-              <Button asChild>
-                <Link to="/auth/login">Sign In</Link>
+              <Button onClick={() => login()}>
+                Sign In
               </Button>
             )}
 
@@ -211,10 +211,14 @@ export default function Navbar() {
                   </Button>
                 </>
               ) : (
-                <Button asChild className="w-full justify-start">
-                  <Link to="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
-                    Sign In
-                  </Link>
+                <Button 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    login();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Sign In
                 </Button>
               )}
             </div>

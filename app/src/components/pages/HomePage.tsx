@@ -7,12 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '../layout/Navbar';
 import { Play, Users, Eye, TrendingUp, Clock, Plus, Zap } from 'lucide-react';
+import { useAuthContext } from '@/auth/AuthProvider';
+import { BaseSignInModal } from '../auth/BaseSignInModal';
 
 export default function HomePage() {
   const [chains, setChains] = useState<DanceChain[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuthContext();
 
   const categories = [
     { value: 'all', label: 'All Chains' },
@@ -63,6 +67,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
+      {/* Authentication Modal */}
+      {showAuthModal && (
+        <BaseSignInModal onClose={() => setShowAuthModal(false)} />
+      )}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <div className="text-center mb-16 animate-fade-in-up">
@@ -81,7 +90,7 @@ export default function HomePage() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <Button
-              onClick={() => navigate('/create-chain')}
+              onClick={() => isLoggedIn ? navigate('/create-chain') : setShowAuthModal(true)}
               size="lg"
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 btn-primary focus-enhanced px-8 py-3 text-lg"
               data-tour="create-chain"
@@ -249,7 +258,7 @@ export default function HomePage() {
               }
             </p>
             <Button 
-              onClick={() => navigate('/create-chain')}
+              onClick={() => isLoggedIn ? navigate('/create-chain') : setShowAuthModal(true)}
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
             >
               <Plus className="w-4 h-4 mr-2" />

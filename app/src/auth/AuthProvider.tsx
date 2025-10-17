@@ -1,6 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { LoginPage } from './LoginPage';
 import { UserDetailsPanel } from './UserDetailsPanel';
 import { Client } from '@hey-api/client-fetch';
 import { UserDetails } from '../types/auth-types';
@@ -11,7 +10,7 @@ interface AuthContextType {
     authLoading: boolean;
     token: string | null;
     logout: () => void;
-    login: () => void;
+    login: () => Promise<void>;
     clientReady: boolean;
     appName?: string;
 }
@@ -27,9 +26,9 @@ export const useAuthContext = () => {
 };
 
 export const SignedIn: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { isLoggedIn, clientReady, token } = useAuthContext();
+    const { isLoggedIn, clientReady } = useAuthContext();
     
-    if (!clientReady || !isLoggedIn || !token) {
+    if (!clientReady || !isLoggedIn) {
         return null;
     }
     
@@ -37,21 +36,27 @@ export const SignedIn: React.FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export const SignedOut: React.FC<{ children?: ReactNode }> = ({ children }) => {
-    const { isLoggedIn, clientReady } = useAuthContext();
-    
-    if (!clientReady) {
+    const { isLoggedIn, clientReady, authLoading } = useAuthContext();
+
+    if (!clientReady || authLoading) {
+        // Show a subtle loading indicator in the corner instead of full screen
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-t-transparent"></div>
-                <p className="ml-2 text-gray-600">Authenticating...</p>
-            </div>
+            <>
+                {children}
+                <div className="fixed top-4 right-4 z-50">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
+                        <span className="text-gray-700 text-sm font-medium">Connecting...</span>
+                    </div>
+                </div>
+            </>
         );
     }
-    
+
     if (isLoggedIn) {
         return null;
     }
-    
+
     return <>{children}</>;
 };
 
@@ -66,7 +71,10 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children, client, baseInfranodeUrl, loginRedirectUrl, clientId, appName }) => {
     const [authToken, setAuthToken] = useState<string | null>(null);
-    const baseUrl = "https://" + window.location.hostname.replace("5173", "8000");
+    // Use the passed baseInfranodeUrl instead of hardcoding HTTPS
+    const baseUrl = baseInfranodeUrl;
+
+    console.log('🔐 AuthProvider Config:', { baseUrl, baseInfranodeUrl, loginRedirectUrl, clientId });
     const {
         isLoggedIn,
         userDetails,
@@ -74,24 +82,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, client, ba
         login,
         logout,
         token
-    } = useAuth(baseUrl, baseInfranodeUrl, loginRedirectUrl, clientId);
+    } = useAuth();
 
     useEffect(() => {
-        if (isLoggedIn && token) {
-            const interceptor = client.interceptors.request.use((request) => {
-                request.headers.set("Authorization", `Bearer ${token}`);
-                return request;
-            });
-            
-            setAuthToken(token);
-            
-            return () => {
-                client.interceptors.request.eject(interceptor);
-            };
+        if (isLoggedIn && userDetails?.address) {
+            // For Base Accounts, we can use the address as authorization
+            setAuthToken(userDetails.address!);
         }
-    }, [isLoggedIn, token, client]);
+    }, [isLoggedIn, userDetails]);
 
-    const clientReady = !authLoading && (isLoggedIn ? !!token : true);
+    const clientReady = !authLoading;
+    console.log('AuthProvider state:', { isLoggedIn, authLoading, clientReady });
 
     return (
         <AuthContext.Provider value={{ isLoggedIn, userDetails, authLoading, token: authToken, logout, login, clientReady, appName }}>
