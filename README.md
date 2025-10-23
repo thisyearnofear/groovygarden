@@ -288,6 +288,54 @@ python main.py # Start API server (http://localhost:8000)
 - `GET /api/voting_service/get_top_moves` - Popular moves leaderboard
 - `POST /api/user_service/get_user_profile` - User profiles and stats
 
+### Monitoring & Health
+- `GET /health` - Health check endpoint
+- `GET /metrics` - Performance metrics
+- `GET /monitoring/status` - Monitoring status
+
+## 📈 Performance & Monitoring
+
+The DegenDancing platform includes comprehensive performance monitoring and observability features:
+
+### Built-in Monitoring
+- **Health Checks**: `/health` endpoint for service availability
+- **Metrics Collection**: `/metrics` endpoint with detailed performance data
+- **Request Tracking**: Automatic tracking of request times, error rates, and performance metrics
+- **AI Service Monitoring**: Tracks inference times, provider failures, and cache efficiency
+- **Video Processing Monitoring**: Monitors video processing performance and success rates
+- **System Health**: Resource usage (CPU, memory) and uptime tracking
+
+### Performance Optimizations
+- **AI Caching**: Intelligent caching with configurable TTL to reduce API calls
+- **Rate Limiting**: Configurable rate limits to prevent abuse
+- **Video Sampling**: Efficient video processing with frame sampling to reduce resource usage
+- **Database Query Optimization**: Enhanced queries with proper indexing
+- **Error Recovery**: Multi-provider AI fallbacks for high availability
+
+### Security Monitoring
+- **Authentication Validation**: Enhanced security with proper validation
+- **Rate Limiting**: Per-endpoint rate limits to prevent abuse
+- **Input Validation**: Comprehensive validation to prevent injection and other attacks
+
+## 🛠️ Testing Strategy
+
+### Core Features
+- `POST /api/chain_service/create_dance_chain` - Create new dance chain
+- `POST /api/chain_service/add_move_to_chain` - Add move to existing chain
+- `GET /api/chain_service/get_dance_chains` - List chains with filtering
+- `GET /api/chain_service/get_chain_moves/{chain_id}` - Get moves in sequence
+
+### AI Features
+- `POST /api/ai/generate_challenge` - AI-generated dance challenges
+- `POST /api/ai/coach_commentary` - Real-time performance feedback
+- `POST /api/ai/describe_move` - Natural language move descriptions
+- `POST /api/ai/viral_caption` - Social media caption generation
+
+### Social Features
+- `POST /api/voting_service/vote_on_move` - Vote on dance moves
+- `GET /api/voting_service/get_top_moves` - Popular moves leaderboard
+- `POST /api/user_service/get_user_profile` - User profiles and stats
+
 ## 🎯 Testing Strategy
 
 ### Unit Tests

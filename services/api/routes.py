@@ -23,7 +23,7 @@ import contextvars
 import json
 from pathlib import Path
 import builtins
-
+from collections import defaultdict
 from datetime import datetime, date, time, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Any, TypeVar, Awaitable, List, Optional, Dict, Union, Literal, Annotated, Tuple, Set
@@ -139,6 +139,135 @@ async def log_requests(request: Request, call_next):
             raise
             
 ###############################################################################
+# Rate Limiting Middleware
+###############################################################################
+# In-memory rate limiter - in production, use Redis-based rate limiter
+rate_limit_storage = defaultdict(list)
+
+def cleanup_old_requests():
+    """Remove requests older than 1 minute from storage"""
+    now = datetime.utcnow()
+    for key in list(rate_limit_storage.keys()):
+        # Remove requests older than 1 minute
+        rate_limit_storage[key] = [
+            req_time for req_time in rate_limit_storage[key]
+            if (now - req_time).seconds < 60
+        ]
+
+async def rate_limit_middleware(request: Request, call_next):
+    """Rate limiting middleware to prevent abuse"""
+    # Get client IP
+    client_ip = request.client.host
+    
+    # Get rate limits from configuration
+    default_max_requests = config.security.rate_limit_requests
+    rate_limit_window = config.security.rate_limit_window  # in seconds
+    
+    # Define rate limits based on endpoint
+    endpoint = request.url.path
+    max_requests = default_max_requests  # Default rate limit
+    
+    # Specific rate limits for different endpoints
+    if endpoint.startswith('/api/ai/'):
+        max_requests = max(1, default_max_requests // 2)  # AI endpoints: half of default
+    elif endpoint.startswith('/api/chain_service/create_dance_chain'):
+        max_requests = max(1, default_max_requests // 6)  # Creation endpoints: lower limit
+    elif endpoint.startswith('/api/user_service/create_user_profile'):
+        max_requests = max(1, default_max_requests // 12)  # Profile creation: lowest limit
+    
+    # Clean up old requests (older than rate limit window)
+    for key in list(rate_limit_storage.keys()):
+        # Remove requests older than the rate limit window
+        rate_limit_storage[key] = [
+            req_time for req_time in rate_limit_storage[key]
+            if (datetime.utcnow() - req_time).seconds < rate_limit_window
+        ]
+    
+    # Count requests from this IP for this endpoint in the rate limit window
+    key = f"{client_ip}:{endpoint}"
+    current_requests = rate_limit_storage[key]
+    now = datetime.utcnow()
+    
+    # Add current request
+    current_requests.append(now)
+    
+    if len(current_requests) > max_requests:
+        # Rate limit exceeded
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "Rate limit exceeded",
+                "message": f"Too many requests. Maximum {max_requests} requests per {rate_limit_window}s for this endpoint."
+            }
+        )
+    
+    response = await call_next(request)
+    return response
+
+# Add rate limiting middleware
+app.middleware("http")(rate_limit_middleware)
+
+###############################################################################
+# Security Headers Middleware
+###############################################################################
+async def security_headers_middleware(request: Request, call_next):
+    """Add security headers to responses"""
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"  # Or "SAMEORIGIN" if needed
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Only add Content-Security-Policy if not already set
+    if "Content-Security-Policy" not in response.headers:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data:; "
+            "connect-src 'self' https://*; "
+            "frame-ancestors 'none';"
+        )
+    
+    return response
+
+# Add security headers middleware
+app.middleware("http")(security_headers_middleware)
+
+###############################################################################
+# Health Check and Monitoring Endpoints
+###############################################################################
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    from ..monitoring import get_system_health
+    return get_system_health()
+
+@app.get("/metrics")
+async def metrics_endpoint():
+    """Metrics endpoint for Prometheus-style monitoring"""
+    from ..monitoring import get_performance_metrics
+    return get_performance_metrics()
+
+@app.get("/monitoring/status")
+async def monitoring_status():
+    """Detailed monitoring status endpoint"""
+    from ..monitoring import metrics_collector
+    return {
+        "status": "monitoring_active",
+        "timestamp": datetime.utcnow().isoformat(),
+        "collector_info": {
+            "total_metrics": len(metrics_collector.metrics),
+            "request_samples": len(metrics_collector.request_times),
+            "error_categories": list(metrics_collector.error_counts.keys()),
+        }
+    }
+
+###############################################################################
 # Error Handler
 ###############################################################################
 @app.exception_handler(Exception)
@@ -184,25 +313,36 @@ async def handle_validation_errors(request: Request, exc: RequestValidationError
         content={"error": "Validation failed", "details": exc.errors()}
     )
 
-ENV = os.environ.get("ENV", "development")
+from ..config import get_config
+
+config = get_config()
+ENV = config.app_env.env
 
 def get_auth_origins():
     if ENV in ["sandbox", "development"]:
         origins = [
-            os.environ.get("SANDBOX_FRONTEND_URL", ""),
-            os.environ.get("FRONTEND_URL", ""),
+            config.app_env.sandbox_frontend_url,
+            config.app_env.frontend_url,
         ]
     else:
-        origins = [os.environ.get("PUBLIC_DOMAIN", "")]
+        origins = [config.app_env.public_domain]
 
     return [origin for origin in origins if origin]
 
+# Use configured allowed origins
+configured_origins = config.get_allowed_origins()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:8000"],
+    allow_origins=configured_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*",
+                   "X-User-Address",  # For Base Accounts
+                   "Authorization",
+                   "Content-Type",
+                   "X-Client-Version",
+                   "X-Requested-With"]
 )
 
 async def auth_cors_middleware(request: Request, call_next):
