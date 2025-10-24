@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EnhancedHeader, EnhancedLoading } from '@/components/ui';
 import { User, Camera, MapPin, Music } from 'lucide-react';
 
 export default function ProfileSetup() {
@@ -128,7 +129,7 @@ export default function ProfileSetup() {
   if (checkingProfile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <EnhancedLoading message="Checking profile..." />
       </div>
     );
   }
@@ -136,14 +137,10 @@ export default function ProfileSetup() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Complete Your Profile
-          </h1>
-          <p className="text-gray-600">
-            Set up your dancer profile to start creating and joining chains
-          </p>
-        </div>
+        <EnhancedHeader
+          title="Complete Your Profile"
+          subtitle="Set up your dancer profile to start creating and joining chains"
+        />
 
         <Card>
           <CardHeader>

@@ -13,11 +13,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EnhancedHeader, EnhancedLoading, EnhancedEmptyState, EnhancedStats, DanceCard } from '@/components/ui';
 import Navbar from '../layout/Navbar';
 import { 
   User, MapPin, Calendar, Trophy, Play, 
   Eye, TrendingUp, Users, Award, Music,
-  ExternalLink, Share
+  ExternalLink, Share, Activity
 } from 'lucide-react';
 
 export default function UserProfile() {
@@ -87,8 +88,8 @@ export default function UserProfile() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedLoading message="Loading user profile..." />
         </div>
       </div>
     );
@@ -115,7 +116,18 @@ export default function UserProfile() {
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
+        <EnhancedHeader
+          title={profile.display_name || profile.username}
+          subtitle={`@${profile.username}`}
+        >
+          <div className="flex justify-center mb-6">
+            <Button variant="outline" size="sm">
+              <Share className="w-4 h-4 mr-1" />
+              Share
+            </Button>
+          </div>
+        </EnhancedHeader>
+        
         <Card className="mb-8">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
@@ -130,25 +142,11 @@ export default function UserProfile() {
               
               {/* Profile Info */}
               <div className="flex-1">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                      {profile.display_name || profile.username}
-                    </h1>
-                    <p className="text-lg text-gray-600 mb-2">@{profile.username}</p>
-                    {profile.verified && (
-                      <Badge className="bg-blue-100 text-blue-800 mb-4">
-                        ✓ Verified
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Share className="w-4 h-4 mr-1" />
-                      Share
-                    </Button>
-                  </div>
-                </div>
+                {profile.verified && (
+                  <Badge className="bg-blue-100 text-blue-800 mb-4">
+                    ✓ Verified
+                  </Badge>
+                )}
                 
                 {/* Bio */}
                 {profile.bio && (
@@ -189,23 +187,33 @@ export default function UserProfile() {
             </div>
             
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8 pt-8 border-t border-gray-200">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{profile.total_chains_created || 0}</div>
-                <div className="text-sm text-gray-600">Chains Created</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{profile.total_moves_submitted || 0}</div>
-                <div className="text-sm text-gray-600">Moves Submitted</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{profile.total_votes_received || 0}</div>
-                <div className="text-sm text-gray-600">Votes Received</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{profile.follower_count || 0}</div>
-                <div className="text-sm text-gray-600">Followers</div>
-              </div>
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <EnhancedStats stats={[
+                {
+                  value: profile.total_chains_created || 0,
+                  label: "Chains Created",
+                  icon: <Play className="w-5 h-5" />,
+                  color: "text-purple-600"
+                },
+                {
+                  value: profile.total_moves_submitted || 0,
+                  label: "Moves Submitted",
+                  icon: <Activity className="w-5 h-5" />,
+                  color: "text-pink-600"
+                },
+                {
+                  value: profile.total_votes_received || 0,
+                  label: "Votes Received",
+                  icon: <Trophy className="w-5 h-5" />,
+                  color: "text-blue-600"
+                },
+                {
+                  value: profile.follower_count || 0,
+                  label: "Followers",
+                  icon: <Users className="w-5 h-5" />,
+                  color: "text-green-600"
+                }
+              ]} />
             </div>
           </CardContent>
         </Card>
@@ -220,84 +228,28 @@ export default function UserProfile() {
           {/* Created Chains */}
           <TabsContent value="chains" className="mt-6">
             {chains.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center text-gray-500">
-                  <Play className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No chains created yet.</p>
-                </CardContent>
-              </Card>
+              <EnhancedEmptyState
+                title="No chains created yet"
+                description="This user hasn't created any dance chains yet."
+                icon={<Play className="w-8 h-8" />}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {chains.map((chain) => (
-                  <Card 
-                    key={chain.id} 
-                    className="hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/chain/${chain.id}`)}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{chain.title}</CardTitle>
-                          <CardDescription className="mt-1 line-clamp-2">
-                            {chain.description}
-                          </CardDescription>
-                        </div>
-                        <Badge className={
-                          chain.status === 'active' ? 'bg-green-100 text-green-800' :
-                          chain.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }>
-                          {chain.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <div className="space-y-3">
-                        <Badge variant="outline" className="capitalize">
-                          {chain.category}
-                        </Badge>
-                        
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Users className="w-4 h-4" />
-                            <span>{chain.current_move_count}/{chain.max_moves}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Eye className="w-4 h-4" />
-                            <span>{chain.total_views || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <TrendingUp className="w-4 h-4" />
-                            <span>{chain.total_votes || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>{formatDate(chain.created_at || '')}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-pink-500 to-purple-600 h-2 rounded-full"
-                            style={{ width: `${((chain.current_move_count || 1) / (chain.max_moves || 10)) * 100}%` }}
-                          ></div>
-                        </div>
-                        
-                        <Button 
-                          className="w-full"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/chain/${chain.id}`);
-                          }}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          View Chain
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <DanceCard
+                    key={chain.id}
+                    title={chain.title}
+                    description={chain.description}
+                    category={chain.category}
+                    moveCount={chain.current_move_count}
+                    viewCount={chain.total_views}
+                    participantCount={chain.total_participants}
+                    createdAt={new Date(chain.created_at || '')}
+                    isViral={chain.total_views > 1000}
+                    isAiGenerated={chain.is_ai_generated}
+                    onPlay={() => navigate(`/chain/${chain.id}`)}
+                    onJoin={() => navigate(`/chain/${chain.id}`)}
+                  />
                 ))}
               </div>
             )}
@@ -306,12 +258,11 @@ export default function UserProfile() {
           {/* Submitted Moves */}
           <TabsContent value="moves" className="mt-6">
             {moves.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center text-gray-500">
-                  <Award className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No moves submitted yet.</p>
-                </CardContent>
-              </Card>
+              <EnhancedEmptyState
+                title="No moves submitted yet"
+                description="This user hasn't submitted any dance moves yet."
+                icon={<Award className="w-8 h-8" />}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {moves.map((move) => (

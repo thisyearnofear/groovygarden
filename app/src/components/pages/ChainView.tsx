@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EnhancedHeader, EnhancedLoading, EnhancedEmptyState, EnhancedStats, DanceCard } from '@/components/ui';
 import Navbar from '../layout/Navbar';
 import VideoRecorder from '../video/VideoRecorder';
 
@@ -215,64 +216,11 @@ export default function ChainView() {
   };
 
   if (loading) {
-  return (
-  <div className="min-h-screen bg-gray-50">
-  <Navbar />
-
-  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    {/* Chain Header Skeleton */}
-      <div className="animate-pulse mb-8">
-          <div className="bg-white rounded-lg p-6 shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                </div>
-                <div className="h-6 bg-gray-200 rounded w-16"></div>
-              </div>
-              <div className="h-3 bg-gray-200 rounded w-full mb-4"></div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Moves Grid Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg p-6 shadow mb-6">
-                <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-lg aspect-video mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
-                      <div className="flex space-x-2">
-                        <div className="h-8 bg-gray-200 rounded w-16"></div>
-                        <div className="h-8 bg-gray-200 rounded w-16"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse bg-white rounded-lg p-6 shadow">
-                  <div className="h-6 bg-gray-200 rounded w-24 mb-4"></div>
-                  <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 rounded"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedLoading message="Loading dance chain..." />
         </div>
       </div>
     );
@@ -282,10 +230,16 @@ export default function ChainView() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedEmptyState
+            title="Error loading chain"
+            description={error}
+            icon={<AlertCircle className="w-8 h-8" />}
+            action={{
+              label: "Go Back",
+              onClick: () => navigate(-1)
+            }}
+          />
         </div>
       </div>
     );
@@ -295,11 +249,16 @@ export default function ChainView() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Chain Not Found</h2>
-            <Button onClick={() => navigate('/')}>Go Home</Button>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedEmptyState
+            title="Chain Not Found"
+            description="The dance chain you're looking for doesn't exist or has been removed."
+            icon={<AlertCircle className="w-8 h-8" />}
+            action={{
+              label: "Go Home",
+              onClick: () => navigate('/')
+            }}
+          />
         </div>
       </div>
     );
@@ -333,58 +292,61 @@ export default function ChainView() {
       )}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Chain Header */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl mb-2">{chain.title}</CardTitle>
-                <CardDescription className="text-lg mb-4">
-                  {chain.description}
-                </CardDescription>
-                <div className="flex items-center space-x-4 mb-4">
-                  <Badge variant="outline" className="capitalize">
-                    {chain.category}
-                  </Badge>
-                  <Badge className={chain.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
-                    {chain.status}
-                  </Badge>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
-                  <Share className="w-4 h-4 mr-1" />
-                  Share
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Flag className="w-4 h-4 mr-1" />
-                  Report
-                </Button>
-              </div>
+        <EnhancedHeader
+          title={chain.title}
+          subtitle={chain.description}
+        >
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+            <Badge variant="outline" className="capitalize">
+              {chain.category}
+            </Badge>
+            <Badge className={chain.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+              {chain.status}
+            </Badge>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Share className="w-4 h-4 mr-1" />
+                Share
+              </Button>
+              <Button variant="outline" size="sm">
+                <Flag className="w-4 h-4 mr-1" />
+                Report
+              </Button>
             </div>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{chain.current_move_count}</div>
-                <div className="text-sm text-gray-600">Moves</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{chain.total_views || 0}</div>
-                <div className="text-sm text-gray-600">Views</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{chain.total_votes || 0}</div>
-                <div className="text-sm text-gray-600">Votes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{chain.max_moves}</div>
-                <div className="text-sm text-gray-600">Max Moves</div>
-              </div>
-            </div>
+          </div>
+          
+          {/* Stats */}
+          <div className="w-full max-w-4xl mx-auto">
+            <EnhancedStats stats={[
+              {
+                value: chain.current_move_count,
+                label: "Moves",
+                icon: <Play className="w-5 h-5" />,
+                color: "text-purple-600"
+              },
+              {
+                value: chain.total_views || 0,
+                label: "Views",
+                icon: <Eye className="w-5 h-5" />,
+                color: "text-pink-600"
+              },
+              {
+                value: chain.total_votes || 0,
+                label: "Votes",
+                icon: <TrendingUp className="w-5 h-5" />,
+                color: "text-blue-600"
+              },
+              {
+                value: chain.max_moves,
+                label: "Max Moves",
+                icon: <Award className="w-5 h-5" />,
+                color: "text-green-600"
+              }
+            ]} />
+          </div>
             
             {/* Progress Bar */}
-            <div className="mt-6">
+            <div className="mt-6 w-full max-w-4xl mx-auto">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Progress</span>
                 <span>{chain.current_move_count}/{chain.max_moves} moves</span>

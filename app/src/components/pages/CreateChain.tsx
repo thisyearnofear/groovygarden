@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EnhancedHeader, EnhancedLoading, ProgressIndicator } from '@/components/ui';
 import Navbar from '../layout/Navbar';
 import VideoRecorder from '../video/VideoRecorder';
 
@@ -129,7 +130,7 @@ export default function CreateChain() {
   if (hasProfile === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <EnhancedLoading message="Checking profile..." />
       </div>
     );
   }
@@ -139,20 +140,15 @@ export default function CreateChain() {
   <Navbar />
 
   <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div className="text-center mb-12 animate-fade-in-up">
-  <div className="inline-flex items-center space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-sm border border-purple-100">
-  <Sparkles className="w-4 h-4 text-purple-600" />
-    <span className="text-sm font-medium text-purple-700">AI-Assisted Creation</span>
-  </div>
-
-  <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-4">
-      Create a New Dance Chain
-          </h1>
-
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Start a collaborative dance sequence that others can build upon.
-            Our AI will help you craft the perfect challenge!
-          </p>
+  <EnhancedHeader
+    title="Create a New Dance Chain"
+    subtitle="Start a collaborative dance sequence that others can build upon. Our AI will help you craft the perfect challenge!"
+  >
+    <div className="inline-flex items-center space-x-2 bg-white rounded-full px-4 py-2 mb-6 shadow-sm border border-purple-100">
+      <Sparkles className="w-4 h-4 text-purple-600" />
+      <span className="text-sm font-medium text-purple-700">AI-Assisted Creation</span>
+    </div>
+  </EnhancedHeader>
 
           {/* Progress indicator */}
           <div className="flex items-center justify-center space-x-4 mt-8">
@@ -187,19 +183,15 @@ export default function CreateChain() {
 
         {/* Progress Indicator */}
         <div className="flex justify-center mb-8">
-          <div className="flex items-center space-x-4">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step >= 1 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-              <Settings className="w-4 h-4" />
-            </div>
-            <div className={`w-16 h-1 ${step >= 2 ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step >= 2 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-              <Play className="w-4 h-4" />
-            </div>
-            <div className={`w-16 h-1 ${step >= 3 ? 'bg-purple-600' : 'bg-gray-300'}`}></div>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step >= 3 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
-              <CircleAlert className="w-4 h-4" />
-            </div>
-          </div>
+          <ProgressIndicator 
+            steps={[
+              { id: 'details', title: 'Details', status: step >= 1 ? 'completed' : 'pending' },
+              { id: 'ai', title: 'AI Generate', status: step >= 2 ? 'completed' : step === 1 ? 'current' : 'pending' },
+              { id: 'record', title: 'Record', status: step >= 3 ? 'completed' : step === 2 ? 'current' : 'pending' },
+              { id: 'publish', title: 'Publish', status: step === 3 ? 'current' : 'pending' }
+            ]}
+            currentStep={step === 1 ? 'details' : step === 2 ? 'ai' : 'record'}
+          />
         </div>
 
         {/* Step 1: Chain Details */}

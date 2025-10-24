@@ -2,31 +2,38 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { 
-  userServiceGetUserProfile, 
+  userServiceGetUserProfile,
   chainServiceGetDanceChains,
   votingServiceGetTopMoves,
   type UserProfile,
   type DanceChain,
   type ChainMove
 } from '@/lib/sdk';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Navbar from '../layout/Navbar';
 import { 
   User, Play, Trophy, TrendingUp, Users, Eye, 
-  Plus, Calendar, Star, Award, Activity 
+  Plus, Calendar, Star, Award, Activity, Zap, Music, MapPin
 } from 'lucide-react';
+import { 
+  EnhancedHeader,
+  EnhancedStats,
+  EnhancedCard,
+  EnhancedLoading,
+  EnhancedEmptyState,
+  EnhancedTabs,
+  DanceCard
+} from '@/components/ui';
+import Navbar from '../layout/Navbar';
 
 export default function Dashboard() {
   const { userDetails } = useAuthContext();
   const navigate = useNavigate();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userChains, setUserChains] = useState<DanceChain[]>([]);
   const [featuredChains, setFeaturedChains] = useState<DanceChain[]>([]);
   const [topMoves, setTopMoves] = useState<ChainMove[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('chains');
 
   useEffect(() => {
     loadDashboardData();
@@ -34,28 +41,21 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true);
-      
       // Load user profile
       const profileResponse = await userServiceGetUserProfile({});
-      if (!profileResponse.data) {
-        navigate('/setup-profile');
-        return;
-      }
-      setProfile(profileResponse.data);
-
-      // Load featured chains
-      const chainsResponse = await chainServiceGetDanceChains({
-        body: { category: null, limit: 6, offset: 0 }
-      });
+      setProfile(profileResponse.data || null);
+      
+      // Load user's chains
+      const chainsResponse = await chainServiceGetDanceChains({});
+      setUserChains(chainsResponse.data || []);
+      
+      // Load featured chains (for now, just use all chains)
       setFeaturedChains(chainsResponse.data || []);
-
+      
       // Load top moves
-      const movesResponse = await votingServiceGetTopMoves({
-        body: { limit: 8 }
-      });
+      const movesResponse = await votingServiceGetTopMoves({ body: { limit: 6 } });
       setTopMoves(movesResponse.data || []);
-
+      
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -67,269 +67,274 @@ export default function Dashboard() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatDuration = (seconds: number) => {
+    return `${seconds.toFixed(1)}s`;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
         <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedLoading message="Loading your dashboard..." />
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {profile?.display_name || profile?.username}!
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Ready to create some amazing dance content?
-              </p>
+  const stats = [
+    {
+      value: profile?.total_chains_created || 0,
+      label: "Chains Created",
+      icon: <Play className="w-6 h-6" />,
+      color: "text-purple-600"
+    },
+    {
+      value: profile?.total_moves_submitted || 0,
+      label: "Moves Submitted",
+      icon: <Activity className="w-6 h-6" />,
+      color: "text-pink-600"
+    },
+    {
+      value: profile?.total_votes_received || 0,
+      label: "Votes Received",
+      icon: <Trophy className="w-6 h-6" />,
+      color: "text-blue-600"
+    }
+  ];
+
+  const tabs = [
+    {
+      id: 'chains',
+      label: `My Chains (${userChains.length})`,
+      content: (
+        <div className="space-y-6">
+          {userChains.length === 0 ? (
+            <EnhancedCard className="col-span-full">
+              <EnhancedEmptyState
+                title="No chains yet"
+                description="Create your first dance chain to get started. Your chains will appear here."
+                icon={<Play className="w-8 h-8" />}
+                action={{
+                  label: "Create New Chain",
+                  onClick: () => navigate('/create-chain')
+                }}
+              />
+            </EnhancedCard>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userChains.map((chain) => (
+                <DanceCard
+                  key={chain.id}
+                  title={chain.title}
+                  description={chain.description}
+                  category={chain.category}
+                  moveCount={chain.current_move_count}
+                  viewCount={chain.total_views}
+                  participantCount={chain.total_participants}
+                  createdAt={new Date(chain.created_at || '')}
+                  isViral={chain.total_views > 1000}
+                  isAiGenerated={chain.is_ai_generated}
+                  onPlay={() => navigate(`/chain/${chain.id}`)}
+                  onJoin={() => navigate(`/chain/${chain.id}`)}
+                />
+              ))}
             </div>
-            <Button 
-              onClick={() => navigate('/create-chain')}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Chain
-            </Button>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'moves',
+      label: `Top Moves (${topMoves.length})`,
+      content: (
+        <div className="space-y-6">
+          {topMoves.length === 0 ? (
+            <EnhancedCard className="col-span-full">
+              <EnhancedEmptyState
+                title="No moves yet"
+                description="Submit moves to dance chains to see them here. Your top-rated moves will appear in this section."
+                icon={<Activity className="w-8 h-8" />}
+              />
+            </EnhancedCard>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {topMoves.map((move) => (
+                <EnhancedCard
+                  key={move.id}
+                  title={`Move #${move.move_number}`}
+                  description={move.chain?.title}
+                  icon={<Activity className="w-5 h-5" />}
+                >
+                  <div className="space-y-4">
+                    {/* Video Preview */}
+                    <div className="bg-black rounded-lg aspect-video overflow-hidden">
+                      <video 
+                        src={move.video_path}
+                        className="w-full h-full object-cover"
+                        poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23000'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='white' font-size='12'%3EMove %23{move.move_number}%3C/text%3E%3C/svg%3E"
+                        onClick={(e) => {
+                          const video = e.target as HTMLVideoElement;
+                          if (video.paused) {
+                            video.play();
+                          } else {
+                            video.pause();
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Move Details */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        <span className="font-medium">{(move.votes_up || 0) - (move.votes_down || 0)}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{move.views || 0} views</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Trophy className="w-4 h-4 text-purple-500" />
+                        <span>{Math.round((move.verification_score || 0) * 100)}% verified</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(move.created_at || '')}</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => navigate(`/chain/${move.chain_id}`)}
+                      className="w-full py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                    >
+                      View Chain
+                    </button>
+                  </div>
+                </EnhancedCard>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'explore',
+      label: `Explore (${featuredChains.length})`,
+      content: (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredChains.map((chain) => (
+              <DanceCard
+                key={chain.id}
+                title={chain.title}
+                description={chain.description}
+                category={chain.category}
+                moveCount={chain.current_move_count}
+                viewCount={chain.total_views}
+                participantCount={chain.total_participants}
+                createdAt={new Date(chain.created_at || '')}
+                isViral={chain.total_views > 1000}
+                isAiGenerated={chain.is_ai_generated}
+                onPlay={() => navigate(`/chain/${chain.id}`)}
+                onJoin={() => navigate(`/chain/${chain.id}`)}
+              />
+            ))}
           </div>
         </div>
+      )
+    }
+  ];
 
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <Navbar />
+      
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Header */}
+        <EnhancedHeader
+          title={`Welcome back, ${profile?.display_name || userDetails?.email?.split('@')[0] || 'Dancer'}! 🎭`}
+          subtitle="Ready to create your next viral dance chain or explore what's trending in the community?"
+        >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            <button
+              onClick={() => navigate('/create-chain')}
+              className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create New Chain
+            </button>
+            <button
+              onClick={() => navigate('/search')}
+              className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-all"
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Explore Chains
+            </button>
+          </div>
+        </EnhancedHeader>
+        
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Play className="h-6 w-6 text-blue-600" />
+        <EnhancedCard className="mb-8">
+          <div className="p-6">
+            <EnhancedStats stats={stats} />
+          </div>
+        </EnhancedCard>
+        
+        {/* User Profile Summary */}
+        {profile && (
+          <EnhancedCard 
+            title="Your Profile" 
+            description="Your dancer profile information"
+            icon={<User className="w-5 h-5" />}
+            className="mb-8"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {profile.avatar_path ? (
+                    <img src={profile.avatar_path} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="h-8 w-8 text-gray-400" />
+                  )}
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Chains Created</p>
-                  <p className="text-2xl font-bold text-gray-900">{profile?.total_chains_created || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-green-100 p-3 rounded-full">
-                  <Activity className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Moves Submitted</p>
-                  <p className="text-2xl font-bold text-gray-900">{profile?.total_moves_submitted || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-yellow-100 p-3 rounded-full">
-                  <Trophy className="h-6 w-6 text-yellow-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Votes Received</p>
-                  <p className="text-2xl font-bold text-gray-900">{profile?.total_votes_received || 0}</p>
+                <div>
+                  <h3 className="font-semibold text-lg">{profile.display_name || profile.username}</h3>
+                  <p className="text-gray-600">@{profile.username}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <Users className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Followers</p>
-                  <p className="text-2xl font-bold text-gray-900">{profile?.follower_count || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Profile Summary */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>Your Profile</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start space-x-6">
-              <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                {profile?.avatar_path ? (
-                  <img src={profile.avatar_path} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="h-8 w-8 text-gray-400" />
+              
+              {profile.bio && (
+                <p className="text-gray-700">{profile.bio}</p>
+              )}
+              
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                {profile.location && (
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.location}</span>
+                  </div>
                 )}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                  {profile?.display_name || profile?.username}
-                </h3>
-                <p className="text-gray-600 mb-2">@{profile?.username}</p>
-                {profile?.bio && (
-                  <p className="text-gray-700 mb-3">{profile.bio}</p>
+                {profile.dance_styles && (
+                  <div className="flex items-center space-x-1">
+                    <Music className="w-4 h-4" />
+                    <span>{profile.dance_styles}</span>
+                  </div>
                 )}
-                <div className="flex flex-wrap gap-2">
-                  {profile?.dance_styles?.split(',').map((style, index) => (
-                    <Badge key={index} variant="outline">
-                      {style.trim()}
-                    </Badge>
-                  ))}
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>Joined {formatDate(profile.created_at || '')}</span>
                 </div>
               </div>
-              <Button 
-                variant="outline"
-                onClick={() => navigate(`/user/${profile?.username}`)}
-              >
-                View Profile
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Content Tabs */}
-        <Tabs defaultValue="featured" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="featured">Featured Chains</TabsTrigger>
-            <TabsTrigger value="trending">Trending Moves</TabsTrigger>
-          </TabsList>
-
-          {/* Featured Chains */}
-          <TabsContent value="featured">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Star className="h-5 w-5" />
-                  <span>Featured Dance Chains</span>
-                </CardTitle>
-                <CardDescription>
-                  Popular chains from the community
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {featuredChains.map((chain) => (
-                    <Card 
-                      key={chain.id} 
-                      className="hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => navigate(`/chain/${chain.id}`)}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">{chain.title}</CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {chain.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-2">
-                        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                          <Badge variant="outline" className="capitalize">
-                            {chain.category}
-                          </Badge>
-                          <span>{chain.current_move_count}/{chain.max_moves} moves</span>
-                        </div>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span className="flex items-center space-x-1">
-                            <Eye className="w-3 h-3" />
-                            <span>{chain.total_views || 0}</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <TrendingUp className="w-3 h-3" />
-                            <span>{chain.total_votes || 0}</span>
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                
-                {featuredChains.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Play className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No featured chains yet. Be the first to create one!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Trending Moves */}
-          <TabsContent value="trending">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Award className="h-5 w-5" />
-                  <span>Trending Moves</span>
-                </CardTitle>
-                <CardDescription>
-                  Most popular moves across all chains
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {topMoves.map((move) => (
-                    <Card key={move.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-                            <video 
-                              src={move.video_path}
-                              className="w-full h-full object-cover"
-                              muted
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">
-                              Move #{move.move_number}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {move.duration_seconds.toFixed(1)}s
-                            </p>
-                            <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
-                              <span className="flex items-center space-x-1">
-                                <TrendingUp className="w-3 h-3 text-green-500" />
-                                <span>{move.votes_up || 0}</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <Eye className="w-3 h-3" />
-                                <span>{move.views || 0}</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                
-                {topMoves.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Trophy className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No trending moves yet. Start creating to be featured!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </EnhancedCard>
+        )}
+        
+        {/* Tabbed Content */}
+        <EnhancedTabs 
+          tabs={tabs} 
+          defaultTab="chains"
+        />
       </div>
     </div>
   );
