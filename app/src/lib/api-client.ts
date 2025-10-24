@@ -1,5 +1,10 @@
 import { createClient, createConfig, type Client } from '@hey-api/client-fetch';
-import { getWalletClient } from '../auth/utils';
+
+// Get user address from localStorage (Base Account integration)
+const getUserAddress = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('base_user_address');
+};
 
 // Create a custom client with proper configuration
 const config = createConfig({
@@ -9,11 +14,11 @@ const config = createConfig({
   },
   // Add auth token automatically
   async onRequest({ request }) {
-    // Get wallet client and add the X-User-Address header for Base Accounts
+    // Get user address from localStorage and add the X-User-Address header for Base Accounts
     try {
-      const walletClient = await getWalletClient();
-      if (walletClient && walletClient.account) {
-        request.headers.set('X-User-Address', walletClient.account.address);
+      const userAddress = getUserAddress();
+      if (userAddress) {
+        request.headers.set('X-User-Address', userAddress);
       }
     } catch (error) {
       // If wallet is not connected, continue without the header
